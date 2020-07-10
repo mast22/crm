@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Pricing example · Bootstrap</title>
+
+    {% load bootstrap4 %}
+    {% bootstrap_css %}
+    {% bootstrap_javascript jquery='full' %}
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'comments/styles.css' %}">
+    <script src="{% static 'scripts.js' %}"></script>
+    {% block head %}
+    {% endblock head %}
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+  <h5 class="my-0 mr-md-auto font-weight-normal"><a href="{% url 'home' %}" class="text-dark">Company name</a></h5>
+  <nav class="my-2 my-md-0 mr-md-3">
+    <a class="p-2 text-dark" href="{% url 'tasks:task-create' %}">Создать Задачу</a>
+    <a class="p-2 text-dark" href="{% url 'tasks:task-list' %}">Список задач</a>
+    {% if user.is_authenticated %}
+      <a class="p-2 text-dark" href="{% url 'logout' %}">Выйти</a>
+    {% else %}
+      <a class="p-2 text-dark" href="{% url 'login' %}">Войти</a>
+    {% endif %}
+  </nav>
+</div>
+
+
+<div class="container">
+    {% block content %}
+    {% endblock content %}
+</div>
+</body>
+</html>

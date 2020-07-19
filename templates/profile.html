@@ -1,0 +1,9 @@
+{% extends 'base.html' %}\
+
+{% block content %}
+    {% if user.is_authenticated %}
+        {{ user.username }}
+    {% else %}
+        <a href="{% url 'login' %}">Войдите</a> в аккаунт
+    {% endif %}
+{% endblock content %}

@@ -1,11 +1,12 @@
 import os
+from django.urls import reverse_lazy, reverse
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = 'd$+1pmsjxraw8n0@n0ksa^59_h(b6d@leujqgb%nqx3b6v-lol'
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1']
 
 
 INSTALLED_APPS = [
@@ -19,9 +20,11 @@ INSTALLED_APPS = [
     'mptt',
     'tasks',
     'bootstrap4',
+    'stronghold',
 ]
 
 MIDDLEWARE = [
+    'stronghold.middleware.LoginRequiredMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -81,7 +84,12 @@ USE_L10N = True
 USE_TZ = True
 
 
+PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(PROJECT_ROOT, '..', 'collected_static')
+
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, '..', 'media')
+MEDIA_URL = '/media/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
@@ -102,3 +110,9 @@ DRAMATIQ_BROKER = {
 }
 
 DRAMATIQ_TASKS_DATABASE = "default"
+
+LOGIN_REDIRECT_URL = reverse_lazy('tasks:task-list')
+
+# STRONGHOLD
+STRONGHOLD_DEFAULTS = True
+STRONGHOLD_PUBLIC_URLS = ("/accounts/password_reset/",)

@@ -1,16 +1,29 @@
 {% extends 'base.html' %}
 
-{% block content %}
+{% block head %}
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'tasks/css/styles.css' %}">
+{% endblock head %}
 
-{% for task in object_list %}
-<div class="media">
-  <div class="media-body">
-    <a href="{% url 'tasks:task-detail' task.id %}"><h5 class="mt-0">{{ task.name }}</h5></a>
-      <p>{{ task.created_at }}</p>
-    {{ task.text|truncatechars:50 }}
-  </div>
-</div>
-<hr>
-{% endfor %}
+{% block content %}
+  <h3>Page header</h3>
+
+  <nav class="nav">
+    <a class="nav-link" href="{% url 'tasks:filter-task-status' 'new' %}">Новые</a>
+    <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rated' %}">Оцененные</a>
+    <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rejected' %}">Отклоненные</a>
+  </nav>
+
+
+  {% for task in object_list %}
+    <div class="task-list">
+      <div class="media">
+        <div class="media-body">
+          <a href="{% url 'tasks:task-detail' task.id %}"><h5 class="mt-0">{{ task.name }}</h5></a>
+          <p>{{ task.created_at }}</p>{{ task.text|truncatechars:50 }}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
 
 {% endblock content %}

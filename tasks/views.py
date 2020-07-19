@@ -1,10 +1,12 @@
 from django.shortcuts import render, reverse
 from django.views.generic import DetailView, ListView, CreateView
-from .models import Task, Comment, TaskFiles
+from .models import Task, Comment, TaskFile, File, CommentFile
 from .forms import CreateCommentForm, CreateTaskForm
 from django.http import HttpResponseRedirect
 from .tasks import reply_email
 from django.contrib.auth import get_user_model
+from .const import TASK_STATUS_CHOICES, TaskStatuses
+from django.http import Http404
 
 User = get_user_model()
 
@@ -18,8 +20,28 @@ class TaskDetail(DetailView):
         return context
 
 
-class TaskList(ListView):
+class AllTaskList(ListView):
     model = Task
+
+
+class FilterByStatusTaskView(ListView):
+    model = Task
+
+    def get_queryset(self):
+        status = self.kwargs['status']
+        incoming_statuses = [
+            TaskStatuses.NEW,
+            TaskStatuses.RATED,
+            TaskStatuses.REJECTED,
+        ]
+        if status == 'incoming':
+            return Task.objects.filter(status__in=incoming_statuses)
+        elif status in incoming_statuses:
+            return Task.objects.filter(status=status)
+        elif status == TaskStatuses.IN_PROGRESS:
+            return Task.objects.filter(status=TaskStatuses.IN_PROGRESS)
+        else:
+            return Http404()
 
 
 class CreateTaskView(CreateView):
@@ -34,9 +56,10 @@ class CreateTaskView(CreateView):
         files = []
         if self.request.FILES:
             for f in self.request.FILES.getlist('files'):
-                files.append(TaskFiles(task=obj, file=f))
+                file = File.objects.create(file=f)
+                files.append(TaskFile(task=obj, file=file))
 
-        TaskFiles.objects.bulk_create(files)
+        TaskFile.objects.bulk_create(files)
 
         return HttpResponseRedirect(reverse('tasks:task-detail', args=(obj.id,)))
 
@@ -53,7 +76,7 @@ class CommentDetail(DetailView):
 
 def comment_create(request, task, parent=None):
     if request.method == 'POST':
-        form = CreateCommentForm(request.POST)
+        form = CreateCommentForm(request.POST, request.FILES)
         if form.is_valid():
             comment = Comment.objects.create(
                 task_id=task,
@@ -61,6 +84,11 @@ def comment_create(request, task, parent=None):
                 author=request.user,
                 text=form.cleaned_data['text'],
             )
+            files = []
+            for f in request.FILES.getlist('files'):
+                file = File.objects.create(file=f)
+                files.append(CommentFile(comment=comment, file=file))
+            CommentFile.objects.bulk_create(files)
             if parent:
                 reply_email(Comment.objects.get(pk=parent).author, comment)
             return HttpResponseRedirect(reverse('tasks:task-detail', args=(task,)))

@@ -1,11 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h3>{{ object.name }}</h3>
-<p>{{ object.text }}</p>
-<hr>
+  <h3>{{ object.name }}</h3>
+  <p>{{ object.text }}</p>
+  <p class="taks-files">
+    {% for file in object.files.all %}
+    <a href="{{ file.file.file.url }}">{{ file.file.file.name }}</a><br>
+    {% endfor %}
+  </p>
+  <hr>
 
-<a href="{% url 'tasks:comment-create' object.id %}">Добавить комментарий</a>
-{% include 'tasks/comment.html' %}
+  <a href="{% url 'tasks:comment-create' object.id %}">Добавить комментарий</a>
+  {% include 'tasks/comment.html' %}
 
 {% endblock content %}

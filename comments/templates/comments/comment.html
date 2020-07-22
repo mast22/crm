@@ -1,0 +1,34 @@
+{% load mptt_tags %}
+
+{% recursetree comments %}
+  <div class="media">
+    <div class="media-body" id='{{ node.id }}'>
+      <span class="comment-info"><a
+              href="{% url 'comments:comment-detail' node.id %}">№ {{ node.id }}</a> -- {{ node.author }} -- {{ node.date_time }}</span>
+      <p>{{ node.text }}</p>
+
+      {% if object.files.all %}
+      <span class="comment-info">Файлы</span><br>
+        {% for file in node.files.all %}
+          <a href="{{ file.file.file.url }}">{{ file.file.file.name }}</a> --
+          <span>
+          {% if file.file.comment %}
+            {{ file.file.comment }}
+            <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment">Изменить комментарий</a>
+          {% else %}
+            <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment">Добавить комментарий к файлу</a>
+          {% endif %}
+          </span><br>
+        {% endfor %}
+      {% endif %}
+
+      <a href="{% url 'comments:comment-reply' node.task.id node.id %}">Ответить</a>
+
+      {% if not node.is_leaf_node %}
+        {{ children }}
+      {% endif %}
+
+    </div>
+
+  </div>
+{% endrecursetree %}

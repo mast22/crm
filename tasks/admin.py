@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Task, Comment, TaskFile, CommentFile, File
+from .models import Task, TaskFile, File
 
 # Register your models here.
 
@@ -9,18 +9,8 @@ class TaskAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(Comment)
-class CommentAdmin(admin.ModelAdmin):
-    pass
-
-
 @admin.register(TaskFile)
 class TaskFileAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(CommentFile)
-class CommentFileAdmin(admin.ModelAdmin):
     pass
 
 

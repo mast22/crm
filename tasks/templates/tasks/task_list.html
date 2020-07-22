@@ -20,7 +20,7 @@
       <div class="media">
         <div class="media-body">
           <a href="{% url 'tasks:task-detail' task.id %}"><h5 class="mt-0">{{ task.name }}</h5></a>
-          <p>{{ task.created_at }}</p>{{ task.text|truncatechars:50 }}
+          <p><a href="{% url 'tasks:task-detail' task.id %}">#{{ task.id }}</a> {{ task.created_at }} -- {{ task.author }}</p>{{ task.text|truncatechars:50 }}
         </div>
       </div>
     </div>

@@ -10,7 +10,10 @@
   </p>
   <hr>
 
-  <a href="{% url 'tasks:comment-create' object.id %}">Добавить комментарий</a>
-  {% include 'tasks/comment.html' %}
+  <a href="{% url 'comments:comment-create' object.id %}">Добавить комментарий</a><br>
+  Взять в работу?<br>
+  <a href="{% url 'tasks:accept-task' object.id %}" class="btn btn-success">Принять</a>
+  <a href="" class="btn btn-danger">Отклонить</a>
+  {% include 'tasks/../../../comments/templates/comments/comment.html' %}
 
 {% endblock content %}

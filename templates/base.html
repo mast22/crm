@@ -8,6 +8,10 @@
   {% load bootstrap4 %}
   {% bootstrap_css %}
   {% bootstrap_javascript jquery='full' %}
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/js/all.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css">
   {% load static %}
   <link rel="stylesheet" type="text/css" href="{% static 'base/styles.css' %}">
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/css/styles.css' %}">
@@ -16,38 +20,65 @@
   {% endblock head %}
 
   <style>
-    .bd-placeholder-img {
-      font-size: 1.125rem;
-      text-anchor: middle;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-    }
-
-    @media (min-width: 768px) {
-      .bd-placeholder-img-lg {
-        font-size: 3.5rem;
-      }
+    #search-field {
+      min-width: 420px !important;
     }
   </style>
 </head>
 <body>
-<div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom">
-  <h5 class="my-0 mr-md-auto font-weight-normal"><a href="{% url 'home' %}" class="text-dark">Dynamics 365</a></h5>
-  <nav class="my-2 my-md-0 mr-md-3">
-    <a class="p-2 text-dark" href="{% url 'tasks:task-create' %}">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-5">
+  <a class="navbar-brand" href="{% url 'home' %}">Dynamics 365</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+
+      {% if user.is_authenticated %}
+
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'tasks:task-create' %}">
       Создать Заявку</a>
-    <a class="p-2 text-dark" href="{% url 'tasks:task-list' %}">
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'tasks:task-list' %}">
       Список Заявок</a>
-    {% if user.is_authenticated %}
-      <a class="p-2 text-dark" href="{% url 'logout' %}">Выйти</a>
-      <a class="p-2 text-dark" href="{% url 'profile' %}">{{ user.first_name }} {{ user.last_name }}</a>
-    {% else %}
-      <a class="p-2 text-dark" href="{% url 'login' %}">Войти</a>
-    {% endif %}
-  </nav>
-</div>
+      </li>
+      {% load notifications_tags %}
+      {% notifications_unread as unread_count %}
+      <li class="nav-item text-light">
+        <a href="{% url 'users:notification-list' %}" class="nav-link"><i class="fas fa-bell"></i> {% live_notify_badge badge_class="badge badge-primary" %}</a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'profile' %}">Профиль</a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i></a>
+      </li>
+
+      {% else %}
+
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'login' %}">Войти</a>
+      </li>
+
+      {% endif %}
+
+    </ul>
+
+  {% if user.is_authenticated %}
+
+  <form class="form-inline my-2 my-lg-0" action="{% url 'tasks:task-list' %}" method="get">
+        <input class="form-control mr-sm-2" id="search-field" type="search" placeholder="Для поиска по номеру заявки начинайте с символа #" aria-label="Search" name="query">
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Поиск</button>
+      </form>
+  {% endif %}
+  </div>
+</nav>
 
 
 <div class="container">
@@ -58,10 +89,10 @@
           Заявки
         </li>
         <li class="nav-item">
-          <a class="nav-link active" href="{% url 'tasks:task-list' %}incoming/">Входящие</a>
+          <a class="nav-link active" href="{% url 'tasks:task-list' %}incoming/"><i class="far fa-check-circle"></i> Входящие</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{% url 'tasks:filter-task-status' 'in-progress' %}">В работе</a>
+          <a class="nav-link" href="{% url 'tasks:filter-task-status' 'in-progress' %}"><i class="far fa-clock"></i> В работе</a>
         </li>
       </ul>
     </div>

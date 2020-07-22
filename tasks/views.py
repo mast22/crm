@@ -1,11 +1,12 @@
-from django.shortcuts import render, reverse
-from django.views.generic import DetailView, ListView, CreateView
-from .models import Task, Comment, TaskFile, File, CommentFile
-from .forms import CreateCommentForm, CreateTaskForm
+from django.shortcuts import render, reverse, get_object_or_404
+from django.views.generic import DetailView, ListView, CreateView, UpdateView
+from .models import Task, TaskFile, File
+from .forms import CreateTaskForm
 from django.http import HttpResponseRedirect
 from .tasks import reply_email
 from django.contrib.auth import get_user_model
-from .const import TASK_STATUS_CHOICES, TaskStatuses
+from django.contrib.postgres.search import SearchVector
+from .const import TaskStatuses
 from django.http import Http404
 
 User = get_user_model()
@@ -22,6 +23,13 @@ class TaskDetail(DetailView):
 
 class AllTaskList(ListView):
     model = Task
+
+    def get_queryset(self):
+        query = self.request.GET.get('query')
+        if query.startswith('#'):
+            return Task.objects.annotate(search=SearchVector('id')).filter(search=query[1:])
+        else:
+            return Task.objects.annotate(search=SearchVector('name', 'text')).filter(search=query)
 
 
 class FilterByStatusTaskView(ListView):
@@ -64,35 +72,27 @@ class CreateTaskView(CreateView):
         return HttpResponseRedirect(reverse('tasks:task-detail', args=(obj.id,)))
 
 
-class CommentDetail(DetailView):
-    model = Comment
-    context_object_name = 'comments'
-
-    def get_object(self, queryset=None):
-        """Включаем в queryset дочерние комменты"""
-        obj = super(CommentDetail, self).get_object(queryset=queryset)
-        return obj.get_descendants(include_self=True)
 
 
-def comment_create(request, task, parent=None):
-    if request.method == 'POST':
-        form = CreateCommentForm(request.POST, request.FILES)
-        if form.is_valid():
-            comment = Comment.objects.create(
-                task_id=task,
-                parent_id=parent,
-                author=request.user,
-                text=form.cleaned_data['text'],
-            )
-            files = []
-            for f in request.FILES.getlist('files'):
-                file = File.objects.create(file=f)
-                files.append(CommentFile(comment=comment, file=file))
-            CommentFile.objects.bulk_create(files)
-            if parent:
-                reply_email(Comment.objects.get(pk=parent).author, comment)
-            return HttpResponseRedirect(reverse('tasks:task-detail', args=(task,)))
-    else:
-        form = CreateCommentForm()
 
-    return render(request, 'tasks/comment_form.html', context={'form': form})
+class TaskUpdate(UpdateView):
+    model = Task
+    fields = ['price', 'deadline']
+    template_name_suffix = '_update_form'
+
+    def form_valid(self, form):
+        obj = form.save(commit=False)
+        obj.status = TaskStatuses.RATED
+        obj.save()
+
+        return HttpResponseRedirect(reverse('tasks:task-detail', args=(obj.id,)))
+
+class FileUpdate(UpdateView):
+    model = File
+    fields = ['comment']
+    template_name_suffix = '_update_form'
+
+    def get_success_url(self, **kwargs):
+        # TODO тут много запросов
+        return reverse('tasks:task-detail', kwargs={'pk': self.object.comment_file.comment.task.id})
+

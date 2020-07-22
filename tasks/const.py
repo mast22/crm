@@ -13,3 +13,12 @@ TASK_STATUS_CHOICES = (
     (TaskStatuses.REJECTED, _('Отклоненная')),
     (TaskStatuses.IN_PROGRESS, _('В работе')),
 )
+
+class WorkTypeChoices:
+    TEST1 = 'test_1'
+    TEST2 = 'test_2'
+
+WORK_TYPE_CHOICES = (
+    (WorkTypeChoices.TEST1, 'Тест1'),
+    (WorkTypeChoices.TEST2, 'Тест2')
+)

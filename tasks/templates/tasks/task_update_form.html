@@ -1,15 +1,20 @@
 {% extends 'base.html' %}
 {% load bootstrap4 %}
 
+{% block head %}
+{% endblock head %}
+
 {% block content %}
-  <form method="post" enctype="multipart/form-data">{% csrf_token %}
-    {% bootstrap_form form %}
-    {% buttons %}
-      <button type="submit" class="btn btn-primary">Добавить</button>
-    {% endbuttons %}
-  </form>
+
+<form method="post" enctype="multipart/form-data">{% csrf_token %}
+  {% bootstrap_form form %}
+  {% buttons %}
+    <button type="submit" class="btn btn-primary">Обновить</button>
+  {% endbuttons %}
+</form>
+
   <script>
-  $('#id_wanted_deadline').datepicker({
+    $('#id_deadline').datepicker({
       dateFormat : "yy-mm-dd",
       minDate: new Date($('#hiddendelivdate').val()),
       monthNames : ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
@@ -17,5 +22,5 @@
       firstDay: 1,
     });
   </script>
-{% endblock content %}
 
+{% endblock content %}

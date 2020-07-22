@@ -1,12 +1,16 @@
 import os
+import environ
 from django.urls import reverse_lazy, reverse
+
+env = environ.Env()
+environ.Env.read_env()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = 'd$+1pmsjxraw8n0@n0ksa^59_h(b6d@leujqgb%nqx3b6v-lol'
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['127.0.0.1', '45.11.26.18']
 
 
 INSTALLED_APPS = [
@@ -19,8 +23,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'mptt',
     'tasks',
+    'users',
+    'comments',
     'bootstrap4',
     'stronghold',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -54,13 +61,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'crm.wsgi.application'
 
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+if env('USE_POSTGRES'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'crm',
+            'USER': 'postgres',
+            'PASSWORD': 'root',
+            'HOST': '127.0.0.1',
+            'PORT': '5432',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        }
+    }
 
 
 AUTH_PASSWORD_VALIDATORS = [

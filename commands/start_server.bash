@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIR="/home/crm/"
+DIR="/home/kopylov-crm/"
 WORKERS=3
 IP="0.0.0.0:8000"
 

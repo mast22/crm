@@ -26,10 +26,12 @@ class AllTaskList(ListView):
 
     def get_queryset(self):
         query = self.request.GET.get('query')
-        if query.startswith('#'):
-            return Task.objects.annotate(search=SearchVector('id')).filter(search=query[1:])
-        else:
-            return Task.objects.annotate(search=SearchVector('name', 'text')).filter(search=query)
+        if query:
+            if query.startswith('#')
+                return Task.objects.annotate(search=SearchVector('id')).filter(search=query[1:])
+            else:
+                return Task.objects.annotate(search=SearchVector('name', 'text')).filter(search=query)
+        return Task.objects.all()
 
 
 class FilterByStatusTaskView(ListView):

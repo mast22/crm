@@ -61,13 +61,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'crm.wsgi.application'
 
-if env('USE_POSTGRES'):
+if env('USE_POSTGRES', bool, default=False):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'NAME': 'crm',
             'USER': 'postgres',
-            'PASSWORD': 'root',
+            'PASSWORD': 'postgres',
             'HOST': '127.0.0.1',
             'PORT': '5432',
         }
@@ -111,6 +111,7 @@ MEDIA_URL = '/media/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "dirs"),
 ]
 
 DRAMATIQ_BROKER = {
@@ -134,3 +135,6 @@ LOGIN_REDIRECT_URL = reverse_lazy('tasks:task-list')
 # STRONGHOLD
 STRONGHOLD_DEFAULTS = True
 STRONGHOLD_PUBLIC_URLS = ("/accounts/password_reset/",)
+
+AUTH_USER_MODEL = 'users.User'
+

@@ -3,6 +3,7 @@
 {% block content %}
   <h3>{{ object.name }}</h3>
   <p>{{ object.text }}</p>
+  <p><small>Статус: {{ object.get_status_display }}, Дата добавления: {{ object.created_at }}</small></p>
   <p class="taks-files">
     {% for file in object.files.all %}
     <a href="{{ file.file.file.url }}">{{ file.file.file.name }}</a><br>
@@ -11,9 +12,24 @@
   <hr>
 
   <a href="{% url 'comments:comment-create' object.id %}">Добавить комментарий</a><br>
-  Взять в работу?<br>
-  <a href="{% url 'tasks:accept-task' object.id %}" class="btn btn-success">Принять</a>
-  <a href="" class="btn btn-danger">Отклонить</a>
   {% include 'tasks/../../../comments/templates/comments/comment.html' %}
+  <div class="mt-5">
+    {% load auth_extras %}
+    {% if perms.tasks.can_rate_task %}
+      Оценить<br>
+      <a href="{% url 'tasks:accept-task' object.id %}" class="btn btn-success">Оценить</a>
+      <a href="{% url 'tasks:reject-task' object.id %}" class="btn btn-danger">Отклонить</a>
+      <br>
+    {% endif %}
+    {% if perms.tasks.can_put_to_work %}
+      Отдать в работу?<br>
+      <a href="{% url 'tasks:accept-task' object.id %}" class="btn btn-success">Отдать в работу</a>
+      <a href="{% url 'tasks:delete-task' object.id %}" class="btn btn-danger">Удалить заявку</a>
+    {% endif %}
+  </div>
+  <h3 class="mt-5">Оценки исполнителей</h3>
+  {% for status in object.taskstatus_set.all %}
+    <p>Цена: {{ status.price }} Срок выполнения: {{ status.deadline }}</p>
+  {% endfor %}
 
 {% endblock content %}

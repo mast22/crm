@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <form method="post">{% csrf_token %}
+    {% load bootstrap4 %}
+    {% bootstrap_form form %}
+    {% buttons %}
+      <button type="submit" class="btn btn-primary">Обновить</button>
+    {% endbuttons %}
+  </form>
+
+{% endblock %}

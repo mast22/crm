@@ -3,20 +3,21 @@
 
 {% block content %}
 
-{% if form.errors %}
-<p>Your username and password didn't match. Please try again.</p>
-{% endif %}
+<form method="post" action="{% url 'login' %}" class="login-form">
 
 {% if next %}
     {% if user.is_authenticated %}
-    <p>Your account doesn't have access to this page. To proceed,
-    please login with an account that has access.</p>
+    <div class="alert alert-danger" role="alert">
+      У вашего аккаута недостаточно прав. Зайдите с другого аккаунта с требуемым доступом.
+      </div>
     {% else %}
-    <p>Please login to see this page.</p>
+      <div class="alert alert-danger" role="alert">
+        Войдите в аккаунт.
+      </div>
     {% endif %}
 {% endif %}
 
-<form method="post" action="{% url 'login' %}" class="login-form">
+
 {% csrf_token %}
     {% bootstrap_form form %}
     {% buttons %}

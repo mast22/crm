@@ -6,24 +6,51 @@
 {% endblock head %}
 
 {% block content %}
-  <h3>Page header</h3>
-
-  <nav class="nav">
-    <a class="nav-link" href="{% url 'tasks:filter-task-status' 'new' %}">Новые</a>
-    <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rated' %}">Оцененные</a>
-    <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rejected' %}">Отклоненные</a>
-  </nav>
-
-
-  {% for task in object_list %}
-    <div class="task-list">
-      <div class="media">
-        <div class="media-body">
-          <a href="{% url 'tasks:task-detail' task.id %}"><h5 class="mt-0">{{ task.name }}</h5></a>
-          <p><a href="{% url 'tasks:task-detail' task.id %}">#{{ task.id }}</a> {{ task.created_at }} -- {{ task.author }}</p>{{ task.text|truncatechars:50 }}
-        </div>
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            Заявки
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'tasks:task-list' %}incoming/"><i class="far fa-check-circle"></i> Входящие</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'tasks:filter-task-status' 'in-progress' %}"><i class="far fa-clock"></i> В
+              работе</a>
+          </li>
+        </ul>
       </div>
+      <div class="col-8">
+        <h3>Page header</h3>
+        <nav class="nav">
+          {% load auth_extras %}
+          {% if user|has_group:"Project Manager" %}
+            <a class="nav-link" href="{% url 'tasks:filter-task-status' 'new' %}">На оценке</a>
+            {# <a class="nav-link" href="{% url 'tasks:filter-task-status' 'questioned' %}">Есть вопросы</a>#}
+            <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rated' %}">Оцененные</a>
+          {% elif user|has_group:"Team Leader" %}
+            <a class="nav-link" href="{% url 'tasks:filter-task-status' 'new' %}">Новые</a>
+            <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rated' %}">Оцененные</a>
+            <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rejected' %}">Отклоненные</a>
+          {% endif %}
+        </nav>
+        {% for task in object_list %}
+          <div class="task-list">
+            <div class="media">
+              <div class="media-body">
+                <a href="{% url 'tasks:task-detail' task.id %}"><h5 class="mt-0">{{ task.name }}</h5></a>
+                <span>Статус: {{ task.get_status_display }}</span>
+                <p><a href="{% url 'tasks:task-detail' task.id %}">#{{ task.id }}</a> {{ task.created_at }}
+                  -- {{ task.author }}</p>{{ task.text|truncatechars:50 }}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="col"></div>
     </div>
-  {% endfor %}
+  </div>
 
 {% endblock content %}

@@ -1,0 +1,2 @@
+TEAM_LEADER_GROUP_NAME = 'Team Leader'
+PROJECT_MANAGER_GROUP_NAME = 'Project Manager'

@@ -1,5 +1,5 @@
 from django import forms as f
-from .models import Task
+from .models import Task, TaskStatus
 
 
 class CreateTaskForm(f.ModelForm):
@@ -22,3 +22,9 @@ class CreateTaskForm(f.ModelForm):
             'files',
             'wanted_deadline',
         ]
+
+
+class RateTaskForm(f.ModelForm):
+    class Meta:
+        model = TaskStatus
+        fields = ['price', 'deadline']

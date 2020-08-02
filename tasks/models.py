@@ -2,7 +2,8 @@ from django.db import models as m
 from django.urls import reverse
 from django.dispatch import receiver
 from django.conf import settings
-from .const import TaskStatuses, TASK_STATUS_CHOICES, WORK_TYPE_CHOICES
+from .const import TaskStatuses, TASK_STATUS_CHOICES, WORK_TYPE_CHOICES, DECISION_CHOICES
+from users.models import User
 
 
 class File(m.Model):
@@ -18,9 +19,7 @@ class Task(m.Model):
     status = m.CharField(
         'Статус', choices=TASK_STATUS_CHOICES, default=TaskStatuses.NEW, max_length=11
     )
-    price = m.DecimalField(decimal_places=2, max_digits=10, null=True)
     wanted_deadline = m.DateField('Желаемый срок', null=True)
-    deadline = m.DateField(null=True)
     phone = m.CharField('Номер телефона', max_length=150)
     whats_app = m.CharField('What\'s App', max_length=150)
     work_type = m.CharField('Тип работы', choices=WORK_TYPE_CHOICES, max_length=10)
@@ -31,9 +30,21 @@ class Task(m.Model):
 
     class Meta:
         ordering = ['-created_at']
+        permissions = (
+            ('can_rate_task', 'Может оценить заявку'),
+            ('can_put_to_work', 'Может отдать в работу'),
+        )
+
 
     def get_absolute_url(self):
         return reverse('task-detail', kwargs={'pk': self.pk})
+
+
+class TaskStatus(m.Model):
+    task = m.ForeignKey(Task, on_delete=m.CASCADE)
+    user = m.ForeignKey(User, on_delete=m.CASCADE)
+    price = m.DecimalField(decimal_places=2, max_digits=10, null=True)
+    deadline = m.DateField(null=True)
 
 
 class TaskFile(m.Model):

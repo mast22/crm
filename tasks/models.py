@@ -2,7 +2,7 @@ from django.db import models as m
 from django.urls import reverse
 from django.dispatch import receiver
 from django.conf import settings
-from .const import TaskStatuses, TASK_STATUS_CHOICES, WORK_TYPE_CHOICES, DECISION_CHOICES
+from .const import TaskStatuses, TASK_STATUS_CHOICES, WORK_TYPE_CHOICES, TASK_STATUS_TYPES_CHOICES, TaskStatusTypes
 from users.models import User
 
 
@@ -41,10 +41,17 @@ class Task(m.Model):
 
 
 class TaskStatus(m.Model):
-    task = m.ForeignKey(Task, on_delete=m.CASCADE)
-    user = m.ForeignKey(User, on_delete=m.CASCADE)
+    task = m.ForeignKey(Task, on_delete=m.CASCADE, related_name='task_statuses')
+    user = m.ForeignKey(User, on_delete=m.CASCADE, related_name='task_statuses')
+    type = m.CharField(choices=TASK_STATUS_TYPES_CHOICES, max_length=8)
     price = m.DecimalField(decimal_places=2, max_digits=10, null=True)
     deadline = m.DateField(null=True)
+
+    def is_rejected(self):
+        return self.type == TaskStatusTypes.REJECTED and self.deadline is None and self.price is None
+
+    class Meta:
+        unique_together = ['task', 'user']
 
 
 class TaskFile(m.Model):

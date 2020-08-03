@@ -138,3 +138,4 @@ STRONGHOLD_PUBLIC_URLS = ("/accounts/password_reset/",)
 
 AUTH_USER_MODEL = 'users.User'
 
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'

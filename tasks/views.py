@@ -11,11 +11,11 @@ from .forms import CreateTaskForm, RateTaskForm
 from django.http import HttpResponseRedirect
 from users.models import User
 from django.contrib.postgres.search import SearchVector
-from .const import TaskStatuses
+from .const import TaskStatuses, TaskStatusTypes
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.http import Http404
-from django.contrib.auth.decorators import user_passes_test
 from django.urls import reverse_lazy
+from django.contrib import messages
 
 
 class TaskDetail(PermissionRequiredMixin, DetailView):
@@ -24,7 +24,11 @@ class TaskDetail(PermissionRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['comments'] = Task.objects.get(pk=self.kwargs['pk']).comments.all()
+        context['comments'] = self.object.comments.all()
+        user = self.request.user
+        context['task_status'] = None
+        if user.has_perm('tasks.can_rate_task'):
+            context['task_status'] = self.object.task_statuses.filter(user=user).first()
         return context
 
 
@@ -88,30 +92,71 @@ class CreateTaskView(PermissionRequiredMixin, CreateView):
         return HttpResponseRedirect(reverse('tasks:task-detail', args=(obj.id,)))
 
 
-def accept_task(request, pk):
-    if request.method == 'POST':
-        form = RateTaskForm(request.POST)
-        if form.is_valid():
-            TaskStatus.objects.create(
-                task_id=pk,
-                user=request.user,
-                price=form.cleaned_data['price'],
-                deadline=form.cleaned_data['deadline'],
-            )
+"""
+TaskStatus
+1. Создать - Создаётся TaskStatus
+3. Изменить - Изменяется TaskStatus
+4. Отказать - Создаётся TaskStatus с отказом
+"""
+
+
+class AcceptTaskStatusView(CreateView):
+    form_class = RateTaskForm
+    permission_required = 'tasks.can_rate_task'
+    model = TaskStatus
+
+
+def reject_task(request, task_id):
+    # Проверяем если мы уже приняли заявку
+    user = request.user
+    task_status = TaskStatus.objects.filter(task=task_id, user=user).first()
+    if task_status:
+        task_status.deadline = None
+        task_status.price = None
+        task_status.type = TaskStatusTypes.REJECTED
+        task_status.save()
+
+        return HttpResponseRedirect(reverse('tasks:task-detail', args=(task_id,)))
+
+    # Если его нет, то создаём
+    TaskStatus.objects.create(task_id=task_id, user=user, type=TaskStatusTypes.REJECTED)
+
+    return HttpResponseRedirect(reverse('tasks:task-detail', args=(task_id,)))
+
+
+def put_to_work(request, pk):
+    task = get_object_or_404(Task, pk=pk)
+    task_status = (
+        task.task_statuses.filter(type=TaskStatusTypes.ACCEPTED)
+        .order_by('-price')
+        .first()
+    )
+    if task_status:
+        task_status.type = TaskStatusTypes.IN_WORK
+        task_status.save()
     else:
-        form = RateTaskForm()
-        return render(request, 'tasks/task_accept.html', context={'form': form})
+        messages.add_message(
+            request,
+            messages.ERROR,
+            'Никто из исполнителей ещё не принял заявку',
+            extra_tags='danger',
+        )
+        return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
+
+    task.status = TaskStatuses.IN_PROGRESS
+    task.save()
 
     return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
 
 
-@user_passes_test(User.is_team_leader)
-def reject_task(request, pk):
-    task = get_object_or_404(Task, pk=pk)
-    task.status = TaskStatuses.REJECTED
-    task.save()
+class ChangeTaskStatusView(UpdateView):
+    model = TaskStatus
+    fields = ['deadline', 'price']
+    template_name = 'tasks/change_task_status.html'
 
-    return HttpResponseRedirect(reverse('tasks:task-list', args=(task.id,)))
+    def get_success_url(self, **kwargs):
+        # TODO тут много запросов
+        return reverse('tasks:task-detail', kwargs={'pk': self.object.task_id})
 
 
 class FileUpdate(UpdateView):

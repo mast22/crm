@@ -30,14 +30,14 @@ WORK_TYPE_CHOICES = (
 )
 
 
-class DecisionChoices:
+class TaskStatusTypes:
+    ACCEPTED = 'accepted'
     REJECTED = 'rejected'
-    TAKEN = 'taken'
-    COMPLETED = 'completed'
+    IN_WORK = 'in-work'
 
 
-DECISION_CHOICES = (
-    (DecisionChoices.REJECTED, _('Отклоненная')),
-    (DecisionChoices.TAKEN, _('Взята в рабту')),
-    (DecisionChoices.COMPLETED, _('Завершена')),
+TASK_STATUS_TYPES_CHOICES = (
+    (TaskStatusTypes.ACCEPTED, 'Принято'),
+    (TaskStatusTypes.REJECTED, 'Отклонено'),
+    (TaskStatusTypes.IN_WORK, 'Принят к работе'),
 )

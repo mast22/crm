@@ -13,4 +13,4 @@ collected_static/
 media/*
 dev.env
 postgres-data/
-media-data/
+media-data

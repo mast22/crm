@@ -2,13 +2,15 @@ import os
 import environ
 from django.urls import reverse_lazy, reverse
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+environment = os.getenv('PRODUCTION', False)
+
 env = environ.Env()
 environ.Env.read_env()
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 SECRET_KEY = 'd$+1pmsjxraw8n0@n0ksa^59_h(b6d@leujqgb%nqx3b6v-lol'
-DEBUG = True
+DEBUG = env('DEBUG', bool, default=False)
 
 ALLOWED_HOSTS = ['127.0.0.1', '45.11.26.18']
 
@@ -76,7 +78,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            'NAME': os.path.join(BASE_DIR, '../db.sqlite3'),
         }
     }
 
@@ -104,14 +106,13 @@ USE_TZ = True
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(PROJECT_ROOT, '..', 'collected_static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'collected_static')
 
-MEDIA_ROOT = os.path.join(PROJECT_ROOT, '..', 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
-    os.path.join(BASE_DIR, "dirs"),
 ]
 
 DRAMATIQ_BROKER = {

@@ -1,0 +1,8 @@
+1. Расширение для браузера для дополнительной информации о репозитории на github - главное дата создания репозитория (JavaScript)
+2. Cloud Save на расте или голанге. Не хочу на питон
+3. GitHub Pages заметки
+4. Бенчмарки python http клиентов
+5. FastAPI SQLAlchemy Permissions
+6. Попробовать FastAPI URLShortener
+7. Golang Blog
+8. Postgres + Go

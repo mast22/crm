@@ -1,0 +1,7 @@
+https://habr.com/ru/post/269893/ Чистая архитектура
+https://github.com/Konstantin8105/Effective_Go_RU
+https://github.com/CaptainCodeman/clean-go
+https://geeks.uniplaces.com/putting-clean-architecture-into-practice-20c47d8c76de
+https://leanpub.com/b/golang-app-bundle
+
+Annotated turing book

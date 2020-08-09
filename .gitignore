@@ -6,10 +6,11 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 media
-collected_static
+collected_static/
 .vscode/
 .idea/
 .editorconfig
 media/*
-crm/.env
+dev.env
 postgres-data/
+media-data/

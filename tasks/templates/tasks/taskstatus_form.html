@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block content %}
+  <form method="post" enctype="multipart/form-data">{% csrf_token %}
+    {% bootstrap_form form %}
+    {{ form.errors }}
+    {% buttons %}
+      <button type="submit" class="btn btn-primary">Добавить</button>
+    {% endbuttons %}
+  </form>
+  <script>
+  $('#id_deadline').datepicker({
+      dateFormat : "dd.mm.yy",
+      minDate: new Date($('#hiddendelivdate').val()),
+      monthNames : ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
+      dayNamesMin : ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'],
+      firstDay: 1,
+    });
+  </script>
+{% endblock content %}

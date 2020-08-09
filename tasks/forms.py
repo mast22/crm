@@ -12,6 +12,7 @@ class CreateTaskForm(f.ModelForm):
         model = Task
         fields = [
             'name',
+            'customer_name',
             'phone',
             'whats_app',
             'email',
@@ -23,8 +24,20 @@ class CreateTaskForm(f.ModelForm):
             'wanted_deadline',
         ]
 
+class ChangeTaskForm(f.ModelForm):
+    class Meta:
+        model = Task
+        fields = [
+            'customer_name',
+            'phone',
+            'whats_app',
+            'email',
+            'notes',
+        ]
+
 
 class RateTaskForm(f.ModelForm):
     class Meta:
         model = TaskStatus
         fields = ['price', 'deadline']
+        # widgets = {'task': f.HiddenInput()}

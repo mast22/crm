@@ -4,19 +4,24 @@
   <div class="media">
     <div class="media-body" id='{{ node.id }}'>
       <span class="comment-info"><a
-              href="{% url 'comments:comment-detail' node.id %}">№ {{ node.id }}</a> -- {{ node.author }} -- {{ node.date_time }}</span>
+              href="{% url 'comments:comment-detail' node.id %}">№ {{ node.id }}</a> -- {{ node.created_at }}</span>
       <p>{{ node.text }}</p>
-
-      {% if object.files.all %}
-      <span class="comment-info">Файлы</span><br>
+      {% if node.files.all %}
+        <span class="comment-info">Файлы</span><br>
+        {{ mode }}
         {% for file in node.files.all %}
           <a href="{{ file.file.file.url }}">{{ file.file.file.name }}</a> --
           <span>
           {% if file.file.comment %}
             {{ file.file.comment }}
-            <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment">Изменить комментарий</a>
+            <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment"
+            >Изменить комментарий</a>
+{#            <button class="btn btn-primary" id="{{ file.id }}"#}
+{#                    onclick="file_comment_ajax('{% url 'tasks:update-file-comment' file.file.id %}', '1234567',);">Изменить</button>#}
           {% else %}
             <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment">Добавить комментарий к файлу</a>
+{#            <button class="btn btn-primary" id="{{ file.id }}"#}
+{#                    onclick="file_comment_ajax('{% url 'tasks:update-file-comment' file.file.id %}', '123',);">Создать</button>#}
           {% endif %}
           </span><br>
         {% endfor %}

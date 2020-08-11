@@ -1,39 +1,41 @@
 {% load mptt_tags %}
 
 {% recursetree comments %}
-  <div class="media">
-    <div class="media-body" id='{{ node.id }}'>
-      <span class="comment-info"><a
-              href="{% url 'comments:comment-detail' node.id %}">№ {{ node.id }}</a> -- {{ node.created_at }}</span>
-      <p>{{ node.text }}</p>
-      {% if node.files.all %}
-        <span class="comment-info">Файлы</span><br>
-        {{ mode }}
-        {% for file in node.files.all %}
-          <a href="{{ file.file.file.url }}">{{ file.file.file.name }}</a> --
-          <span>
+    <div class="media">
+        <div class="media-body" id='{{ node.id }}'>
+      <span class="comment-info">
+          <a href="{% url 'comments:comment-detail' node.id %}">№ {{ node.id }}</a> -- {{ node.created_at }}
+          {% if node.can_be_edited %}<a href="{% url 'comments:comment-edit' node.id %}"><i class="fas fa-edit"></i> Изменить текст</a></span>{% endif %}
+            <p>{{ node.text }}</p>
+            {% if node.files.all %}
+
+                <span class="comment-info">Файлы<br></span>
+                {{ mode }}
+                {% for file in node.files.all %}
+                    <a href="{{ file.file.file.url }}">{{ file.file.file.name }}</a> --
+                    <span>
           {% if file.file.comment %}
-            {{ file.file.comment }}
-            <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment"
-            >Изменить комментарий</a>
-{#            <button class="btn btn-primary" id="{{ file.id }}"#}
-{#                    onclick="file_comment_ajax('{% url 'tasks:update-file-comment' file.file.id %}', '1234567',);">Изменить</button>#}
+              {{ file.file.comment }}
+              <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment"
+              >Изменить комментарий файла</a>
+              {#            <button class="btn btn-primary" id="{{ file.id }}"#}
+              {#                    onclick="file_comment_ajax('{% url 'tasks:update-file-comment' file.file.id %}', '1234567',);">Изменить</button>#}
           {% else %}
-            <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment">Добавить комментарий к файлу</a>
-{#            <button class="btn btn-primary" id="{{ file.id }}"#}
-{#                    onclick="file_comment_ajax('{% url 'tasks:update-file-comment' file.file.id %}', '123',);">Создать</button>#}
+              <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment">Добавить комментарий к файлу</a>
+              {#            <button class="btn btn-primary" id="{{ file.id }}"#}
+              {#                    onclick="file_comment_ajax('{% url 'tasks:update-file-comment' file.file.id %}', '123',);">Создать</button>#}
           {% endif %}
           </span><br>
-        {% endfor %}
-      {% endif %}
+                {% endfor %}
+            {% endif %}
 
-      <a href="{% url 'comments:comment-reply' node.task.id node.id %}">Ответить</a>
+            <a href="{% url 'comments:comment-reply' node.task.id node.id %}">Ответить</a>
 
-      {% if not node.is_leaf_node %}
-        {{ children }}
-      {% endif %}
+            {% if not node.is_leaf_node %}
+                {{ children }}
+            {% endif %}
+
+        </div>
 
     </div>
-
-  </div>
 {% endrecursetree %}

@@ -4,9 +4,6 @@
 {% block content %}
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    {% bootstrap_form form %}
-    {% buttons %}
-      <button type="submit" class="btn btn-primary">Добавить</button>
-    {% endbuttons %}
+      <textarea name="text" id="text" cols="30" rows="10">{{ comment.text }}</textarea>
   </form>
 {% endblock content %}

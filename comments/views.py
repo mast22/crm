@@ -7,7 +7,8 @@ from django.contrib.auth import get_user_model
 from notifications.signals import notify
 from tasks.const import TaskStatuses
 from common.const import TEAM_LEADER_GROUP_NAME, PROJECT_MANAGER_GROUP_NAME
-
+from django.contrib import messages
+from django.forms import inlineformset_factory
 
 User = get_user_model()
 
@@ -78,3 +79,12 @@ def comment_create(request, task_id, parent_id=None):
         form = CreateCommentForm()
 
     return render(request, 'comments/comment_form.html', context={'form': form})
+
+
+class CommentUpdate(UpdateView):
+    model = Comment
+    fields = ['text']
+
+    def get_success_url(self):
+        comment = self.get_object()
+        return reverse('tasks:task-detail', args=(comment.task_id,))

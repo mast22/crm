@@ -21,6 +21,13 @@ class Comment(MPTTModel):
     def __str__(self):
         return f'{self.author}-{self.task}'
 
+    def can_be_edited(self):
+        """Комментарий может быть изменён"""
+        return not bool(Comment.objects.filter(
+            m.Q(task=self.task_id, created_at__gte=self.created_at) &
+            ~m.Q(author__groups=self.author.groups.first())
+        ).first())
+
 
 class CommentFile(m.Model):
     comment = m.ForeignKey(Comment, related_name='files', on_delete=m.CASCADE)

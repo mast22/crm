@@ -22,9 +22,14 @@ class Comment(MPTTModel):
         return f'{self.author}-{self.task}'
 
     def can_be_edited(self):
-        """Комментарий может быть изменён"""
+        """
+        Комментарий может быть изменён
+        Комментарий не может быть изменён если:
+        1. В заявке уже ответила другая сторона
+        2. Это комментарий пользователя
+        """
         return not bool(Comment.objects.filter(
-            m.Q(task=self.task_id, created_at__gte=self.created_at) &
+            m.Q(task=self.task, created_at__gte=self.created_at) &
             ~m.Q(author__groups=self.author.groups.first())
         ).first())
 

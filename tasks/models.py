@@ -16,6 +16,35 @@ class File(m.Model):
     file = m.FileField()
     comment = m.CharField(blank=True, max_length=150)
 
+    def get_task(self):
+        task_file = getattr(self, 'task_file', None)
+        if task_file:
+            return task_file.task
+        return getattr(self, 'comment_file', None).comment.task
+
+    def get_owner(self):
+        task_file = getattr(self, 'task_file', None)
+        if task_file:
+            return task_file.task.author
+        return getattr(self, 'comment_file', None).comment.author
+
+    def can_be_deleted(self):
+        """
+        Файл может быть удален
+        1. Из заявки: если на неё не ответили
+        2. Из комментария: если можно изменить комментарий
+        """
+        task_file = getattr(self, 'task_file', None)
+        comment_file = getattr(self, 'comment_file', None)
+
+        if task_file:
+            if task_file.can_be_edited():
+                return True
+        # TODO тут падает
+        if comment_file.comment.can_be_edited():
+            return True
+        return False
+
 
 class Task(m.Model):
     name = m.CharField('Название', max_length=150)
@@ -46,6 +75,24 @@ class Task(m.Model):
 
     def get_absolute_url(self):
         return reverse('task-detail', kwargs={'pk': self.pk})
+
+    # def can_change_task_data(self, user: User) -> bool:
+    #     """
+    #     Данные заявки для пользователя могут быть изменены
+    #     Если другая сторона ещё не ответила
+    #     """
+    #     return not bool(self.comments.filter(
+    #         m.Q(task=self, created_at__gte=self.created_at) &
+    #         ~m.Q(author__groups=user.groups.first())
+    #     ).first())
+
+    def can_be_edited(self):
+        """
+        Решаем если можно изменять заявку.
+        Заявку нельзя изменять если:
+        1. Она уже завершена или в прогрессе
+        """
+        return self.status in [TaskStatuses.COMPLETED, TaskStatuses.IN_PROGRESS]
 
 
 class TaskStatus(m.Model):

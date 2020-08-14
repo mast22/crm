@@ -18,4 +18,5 @@ urlpatterns = [
     path('file/<int:pk>/update/', v.FileUpdate.as_view(), name='update-file-comment'),
     path('<int:pk>/delete/', v.DeleteTaskView.as_view(), name='delete-task'),
     path('<int:pk>/change/', v.change_task_view, name='change-task'),
+    path('<int:pk>/delete-file/', v.delete_file, name='delete-file'),
 ]

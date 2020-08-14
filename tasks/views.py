@@ -54,26 +54,37 @@ def change_task_view(request, pk):
 
     return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
 
+class FilterForPMMixin:
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        user = self.request.user
+        if user.is_project_manager():
+            queryset = queryset.filter(author=user)
 
-class AllTaskList(PermissionRequiredMixin, ListView):
+        return queryset
+
+class AllTaskList(PermissionRequiredMixin, FilterForPMMixin, ListView):
     model = Task
     permission_required = 'tasks.view_task'
 
     def get_queryset(self):
         query = self.request.GET.get('query')
+        queryset = super().get_queryset()
         if query:
             if query.startswith('#'):
-                return Task.objects.annotate(search=SearchVector('id')).filter(
+                queryset = queryset.annotate(search=SearchVector('id')).filter(
                     search=query[1:]
                 )
             else:
-                return Task.objects.annotate(
+                queryset = queryset.annotate(
                     search=SearchVector('name', 'text')
                 ).filter(search=query)
-        return Task.objects.all()
+            return queryset
+        else:
+            return queryset
 
 
-class FilterByStatusTaskView(PermissionRequiredMixin, ListView):
+class FilterByStatusTaskView(PermissionRequiredMixin, FilterForPMMixin, ListView):
     model = Task
     permission_required = 'tasks.view_task'
 
@@ -84,12 +95,13 @@ class FilterByStatusTaskView(PermissionRequiredMixin, ListView):
             TaskStatuses.RATED,
             TaskStatuses.REJECTED,
         ]
+        queryset = super().get_queryset()
         if status == 'incoming':
-            return Task.objects.filter(status__in=incoming_statuses)
+            return queryset.filter(status__in=incoming_statuses)
         elif status in incoming_statuses:
-            return Task.objects.filter(status=status)
+            return queryset.filter(status=status)
         elif status == TaskStatuses.IN_PROGRESS:
-            return Task.objects.filter(status=TaskStatuses.IN_PROGRESS)
+            return queryset.filter(status=TaskStatuses.IN_PROGRESS)
         else:
             return Http404()
 
@@ -297,6 +309,7 @@ class FileUpdate(UserPassesTestMixin, UpdateView):
         if task_file:
             if task_file.task.author == self.request.user:
                 return True
+        # TODO тут падает
         if comment_file.comment.author == self.request.user:
             return True
         return False
@@ -308,3 +321,19 @@ class DeleteTaskView(UserPassesTestMixin, DeleteView):
 
     def test_func(self):
         return self.get_object().author == self.request.user
+
+
+def add_files(request, pk, target):
+    print(pk, target)
+    return HttpResponseRedirect(reverse('tasks:task-list'))
+
+
+def delete_file(request, pk):
+    file = get_object_or_404(File, pk=pk)
+    owner = file.get_owner()
+    if owner != request.user or not file.can_be_deleted():
+        raise PermissionDenied
+    task_id = file.get_task().id
+    file.delete()
+
+    return HttpResponseRedirect(reverse('tasks:task-detail', args=(task_id,)))

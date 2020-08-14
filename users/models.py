@@ -9,7 +9,7 @@ class User(AbstractUser):
             name=TEAM_LEADER_GROUP_NAME, user=(user or self)
         ).exists()
 
-    def is_project_mangager(self, user=None):
+    def is_project_manager(self, user=None):
         return Group.objects.filter(
             name=PROJECT_MANAGER_GROUP_NAME, user=(user or self)
         ).exists()

@@ -45,19 +45,28 @@ class ProjectManagerTasksTests(BaseTaskTests):
         response = self.client.get(reverse('tasks:put-to-work', args=(self.task.id,)))
         self.assertRedirects(response, reverse('tasks:task-detail', args=(self.task.id,)), status_code=302, target_status_code=200)
 
-    def test_project_managet_cannot_rate_task(self):
+    def test_project_manager_cannot_rate_task(self):
         self.client.force_login(user=self.project_manager)
-
-        response = self.client.get(reverse('tasks:accept-task', args=(self.task.id,)))
-        self.assertEqual(response.status_code, 403)
 
         response = self.client.get(
             reverse('tasks:change-task-status', args=(self.task.id,))
         )
-        self.assertEqual(response.status_code, 403)
+
+        self.assertRedirects(
+            response,
+            f"{reverse('login')}?next={reverse('tasks:change-task-status', args=(self.task.id,))}",
+            status_code=302,
+            target_status_code=200
+        ) # Делает редирект на логин за другой аккаунт
 
         response = self.client.get(reverse('tasks:reject-task', args=(self.task.id,)))
-        self.assertEqual(response.status_code, 302)
+
+        self.assertRedirects(
+            response,
+            f"{reverse('login')}?next={reverse('tasks:reject-task', args=(self.task.id,))}",
+            status_code=302,
+            target_status_code=200
+        )  # Делает редирект на логин за другой аккаунт
 
     def test_project_manager_can_create_task(self):
         self.client.force_login(user=self.project_manager)
@@ -95,6 +104,12 @@ class ProjectManagerTasksTests(BaseTaskTests):
         self.client.force_login(user=project_manager_2)
         response = self.client.get(reverse('tasks:task-detail', args=(self.task.id,)))
         self.assertEqual(response.status_code, 403)
+
+    def test_project_manager_can_put_to_work(self):
+        self.client.force_login(user=self.project_manager)
+        response = self.client.get(reverse('tasks:put-to-work', args=(self.task.id,)))
+        self.assertRedirects(response, reverse('tasks:task-detail', args=(self.task.id,)), status_code=302,
+                             target_status_code=200)
 
 
 class TeamLeaderTasksTests(BaseTaskTests):

@@ -1,0 +1,25 @@
+<span class="extra-info">Файлы</span><br>
+{% if files %}
+{% for file in files %}
+    <div class="file">
+    {% if editable and author == user %}
+    <a onclick="delete_file_ajax('{% url 'tasks:delete-file' file.file.id %}', $(this));"><i class="fas fa-times"></i></a>
+    {% endif %}
+    <a href="{{ file.file.file.url }}">{{ file.file.file.name }}</a>
+    <span>
+    {{ file.file.comment }}
+    {% if editable and object.author == user %}
+    {% if file.file.comment %}
+        <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment">Изменить комментарий файла</a>
+    {% else %}
+        <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment">Добавить комментарий к файлу</a>
+    {% endif %}
+    {% endif %}
+    </span>
+    </div>
+{% endfor %}
+{% endif %}
+{% if editable %}
+<a href="#">Добавить файлы</a>
+{% endif %}
+<br>

@@ -35,7 +35,10 @@ INSTALLED_APPS = [
     'bootstrap4',
     'stronghold',
     'notifications',
+    'crispy_forms',
 ]
+
+CRISPY_TEMPLATE_PACK = 'uni_form'
 
 MIDDLEWARE = [
     'stronghold.middleware.LoginRequiredMiddleware',

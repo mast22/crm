@@ -28,6 +28,7 @@ class ChangeTaskForm(f.ModelForm):
     class Meta:
         model = Task
         fields = [
+            'name',
             'customer_name',
             'phone',
             'whats_app',

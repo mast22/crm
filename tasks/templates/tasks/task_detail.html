@@ -1,75 +1,77 @@
 {% extends 'base.html' %}
 
 {% block content %}
-{% if perms.tasks.can_see_extra %}
-  <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-    <li class="nav-item" role="presentation">
-      <a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-main" role="tab"
-         aria-controls="pills-home" aria-selected="true">История</a>
-    </li>
+    {% if perms.tasks.can_see_extra %}
+        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" id="pills-home-tab" data-toggle="pill" href="#pills-main" role="tab"
+                   aria-controls="pills-home" aria-selected="true">История</a>
+            </li>
 
-      <li class="nav-item" role="presentation">
-        <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-extra" role="tab"
-           aria-controls="pills-profile" aria-selected="false">Контакты</a>
-      </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-extra" role="tab"
+                   aria-controls="pills-profile" aria-selected="false">Контакты</a>
+            </li>
 
-  </ul>
-  {% endif %}
-  <div class="tab-content" id="pills-tabContent">
-    <h3>{{ object.name }}</h3>
-    <div class="tab-pane fade show active" id="pills-main" role="tabpanel" aria-labelledby="pills-home-tab">
-      <p>{{ object.text }}</p>
-      <p><small>Статус: {{ object.get_status_display }}, Дата добавления: {{ object.created_at }}</small></p>
-        {% include 'files.html' with object=object editable=object.can_be_edited %}
-      <hr>
-    </div>
-  {% if perms.tasks.can_see_extra %}
-    <div class="tab-pane fade" id="pills-extra" role="tabpanel" aria-labelledby="pills-profile-tab">
-      <form method="post" action="{% url 'tasks:change-task' object.id %}">{% csrf_token %}
-        {% load bootstrap4 %}
-        {% bootstrap_form update_form %}
-        {% buttons %}
-          <button type="submit" class="btn btn-primary">Изменить</button>
-        {% endbuttons %}
-      </form>
-    </div>
-  {% endif %}
-  </div>
-
-  <a href="{% url 'comments:comment-create' object.id %}">Добавить комментарий</a><br>
-  {% include 'tasks/../../../comments/templates/comments/comment.html' %}
-  <div class="mt-5">
-    {% load auth_extras %}
-    {% if perms.tasks.can_rate_task and task_status is None %}
-      <p>Оценить заявку</p>
-      <a href="{% url 'tasks:accept-task' object.id %}" class="btn btn-success">Оценить</a>
-      <a href="{% url 'tasks:reject-task' object.id %}" class="btn btn-danger">Отклонить</a>
-      <br>
-    {% elif perms.tasks.can_rate_task and task_status is not None and not task_status.is_rejected %}
-      <p>Заявка принята</p>
-      <a href="{% url 'tasks:change-task-status' object.id %}" class="btn btn-success">Изменить</a>
-      <a href="{% url 'tasks:reject-task' object.id %}" class="btn btn-danger">Отклонить</a>
-      <br>
-    {% elif perms.tasks.can_rate_task and task_status is not None and task_status.is_rejected %}
-      <p>Вы отклонили заявку</p>
-      <a href="{% url 'tasks:accept-from-rejected' object.id %}" class="btn btn-success">Принять</a>
-  {% endif %}
-    {% if perms.tasks.can_put_to_work and user == object.author %}
-      <p>Отдать в работу?</p>
-      <a href="{% url 'tasks:put-to-work' object.id %}" class="btn btn-success">Отдать в работу</a>
-      <a href="{% url 'tasks:delete-task' object.id %}" class="btn btn-danger">Удалить заявку</a>
+        </ul>
     {% endif %}
-  </div>
-  <h3 class="mt-5">Оценки исполнителей</h3>
-  {% for status in object.task_statuses.all %}
-    {% if status.price is None and status.deadline is None %}
-      <p>Отклонена {{ status.last_modified }}</p>
-    {% else %}
-      <p>{{ status.last_modified }} Цена: {{ status.price }} Срок выполнения: {{ status.deadline }}</p>
-    {% endif %}
-  {% endfor %}
+    <div class="tab-content" id="pills-tabContent">
+        <h3>{{ object.name }}</h3>
+        <div class="tab-pane fade show active" id="pills-main" role="tabpanel" aria-labelledby="pills-home-tab">
+            <p>{{ object.text }}</p>
+            <p><small>Статус: {{ object.get_status_display }}, Дата добавления: {{ object.created_at }}</small></p>
+            {% include 'files.html' with object=object editable=object.can_be_edited %}
+            <hr>
+        </div>
+        {% if perms.tasks.can_see_extra %}
+            <div class="tab-pane fade" id="pills-extra" role="tabpanel" aria-labelledby="pills-profile-tab">
+                <form method="post" action="{% url 'tasks:change-task' object.id %}">{% csrf_token %}
+                    {% load bootstrap4 %}
+                    {% bootstrap_form update_form %}
+                    {% buttons %}
+                        <button type="submit" class="btn btn-primary">Изменить</button>
+                    {% endbuttons %}
+                </form>
+            </div>
+        {% endif %}
+    </div>
 
-  {% load static %}
-  <script src="{% static '/comments/js/comments.js' %}"></script>
+    <a href="{% url 'comments:comment-create' object.id %}">Добавить комментарий</a><br>
+    {% include 'tasks/../../../comments/templates/comments/comment.html' %}
+    <div class="mt-5">
+        {% load auth_extras %}
+        {% if perms.tasks.can_rate_task and task_status is None %}
+            <p>Оценить заявку</p>
+            <a href="{% url 'tasks:accept-task' object.id %}" class="btn btn-success">Оценить</a>
+            <a href="{% url 'tasks:reject-task' object.id %}" class="btn btn-danger">Отклонить</a>
+            <br>
+        {% elif perms.tasks.can_rate_task and task_status is not None and not task_status.is_rejected %}
+            <p>Заявка принята</p>
+            <a href="{% url 'tasks:change-task-status' object.id %}" class="btn btn-success">Изменить</a>
+            <a href="{% url 'tasks:reject-task' object.id %}" class="btn btn-danger">Отклонить</a>
+            <br>
+        {% elif perms.tasks.can_rate_task and task_status is not None and task_status.is_rejected %}
+            <p>Вы отклонили заявку</p>
+            <a href="{% url 'tasks:accept-from-rejected' object.id %}" class="btn btn-success">Принять</a>
+        {% endif %}
+        {% if perms.tasks.can_put_to_work and user == object.author %}
+            <p>Отдать в работу?</p>
+            <a href="{% url 'tasks:put-to-work' object.id %}" class="btn btn-success">Отдать в работу</a>
+            <a href="{% url 'tasks:delete-task' object.id %}" class="btn btn-danger">Удалить заявку</a>
+        {% endif %}
+    </div>
+    <h3 class="mt-5">Оценки исполнителей</h3>
+    {% for status in object.task_statuses.all %}
+        {% if status.price is None and status.deadline is None %}
+            <p>Отклонена {{ status.last_modified }}</p>
+        {% else %}
+            <p>{{ status.last_modified }} Цена: {{ status.price }} Срок выполнения: {{ status.deadline }}</p>
+        {% endif %}
+    {% endfor %}
+
+    {% load static %}
+    <script src="{% static '/comments/js/comments.js' %}"></script>
+    <script src="{% static '/tasks/js/file_comment.js' %}"></script>
+    <script src="{% static '/tasks/js/delete_file.js' %}"></script>
 
 {% endblock content %}

@@ -19,11 +19,15 @@
   margin: 0;
 }
 
-.comment-info {
-  color: #555;
-  font-size: 12px;
-}
+/*.comment-info {*/
+/*  color: #333;*/
+/*  font-size: 12px;*/
+/*}*/
 
 #commentForm {
+  display: none;
+}
+
+.file-comment-saved {
   display: none;
 }

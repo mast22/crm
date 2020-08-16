@@ -17,3 +17,4 @@ dev.env
 postgres-data/
 media-data
 venv
+todo.txt

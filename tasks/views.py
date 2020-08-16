@@ -1,4 +1,5 @@
 from django.shortcuts import reverse, get_object_or_404, render
+from django.db import models as m
 from django.views.generic import (
     DetailView,
     ListView,
@@ -39,8 +40,8 @@ class TaskDetail(PermissionRequiredMixin, UserPassesTestMixin, DetailView):
         if user.is_superuser:
             return True
         if (
-            self.request.user.has_perm('tasks.can_put_to_work')
-            and self.get_object().author != self.request.user
+                self.request.user.has_perm('tasks.can_put_to_work')
+                and self.get_object().author != self.request.user
         ):
             return False
         return True
@@ -54,16 +55,27 @@ def change_task_view(request, pk):
 
     return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
 
-class FilterForPMMixin:
+
+class GroupFilterMixin:
     def get_queryset(self):
         queryset = super().get_queryset()
         user = self.request.user
         if user.is_project_manager():
             queryset = queryset.filter(author=user)
 
+        if user.is_team_leader():
+            """
+            Для ТЛа удаляем заявки, которые находятся в прогрессе у других ТЛов
+            И которые были завершены не текущим пользователем
+            """
+            queryset = queryset.filter(
+                ~m.Q(status__in=[TaskStatuses.IN_PROGRESS, TaskStatuses.COMPLETED],)
+                & ~m.Q(task_statuses__user=user))
+
         return queryset
 
-class AllTaskList(PermissionRequiredMixin, FilterForPMMixin, ListView):
+
+class AllTaskList(PermissionRequiredMixin, GroupFilterMixin, ListView):
     model = Task
     permission_required = 'tasks.view_task'
 
@@ -84,7 +96,7 @@ class AllTaskList(PermissionRequiredMixin, FilterForPMMixin, ListView):
             return queryset
 
 
-class FilterByStatusTaskView(PermissionRequiredMixin, FilterForPMMixin, ListView):
+class GroupFilterByStatusTaskView(PermissionRequiredMixin, GroupFilterMixin, ListView):
     model = Task
     permission_required = 'tasks.view_task'
 
@@ -134,6 +146,7 @@ TaskStatus
 4. Отказать - Создаётся TaskStatus с отказом
 5. Принять из отказа
 """
+
 
 @permission_required('tasks.can_rate_task')
 def accept_task_status(request, pk):
@@ -186,8 +199,8 @@ def put_to_work(request, pk):
 
     task_status = (
         task.task_statuses.filter(type=TaskStatusTypes.ACCEPTED)
-        .order_by('-price')
-        .first()
+            .order_by('-price')
+            .first()
     )
     if task_status:
         task_status.type = TaskStatusTypes.IN_WORK
@@ -288,7 +301,6 @@ def change_task_status(request, pk):
 
     messages.info(request, 'Оценка не была создана')
     return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
-
 
 
 class FileUpdate(UserPassesTestMixin, UpdateView):

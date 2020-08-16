@@ -1,16 +1,22 @@
 from django.test import Client, TestCase
 from os.path import join
+import random, string
 from django.shortcuts import reverse
 from common.preload import run_preload
 from comments.models import Comment, CommentFile
 from tasks.models import File, Task
+from users.models import Group, User
 from django.conf import settings
+from common.const import TEAM_LEADER_GROUP_NAME, PROJECT_MANAGER_GROUP_NAME
 
 
 class BaseTaskTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         run_preload(add_users=True)
+
+        cls.TL_group = Group.objects.get(name=TEAM_LEADER_GROUP_NAME)
+        cls.PM_group = Group.objects.get(name=PROJECT_MANAGER_GROUP_NAME)
 
     def setUp(self):
         self.client = Client()
@@ -58,3 +64,18 @@ class BaseTaskTests(TestCase):
         response = self.client.delete(url)
 
         return response
+
+    def random_string(self, length):
+        return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
+
+    def create_user(self, username: str, group: Group):
+        """Создаёт пользователя, возвращает его и устанавливает аттрибутом """
+        user = User.objects.create_user(
+            username,
+            email=f'{self.random_string(5)}@mail.com',
+            password=self.random_string(10)
+        )
+
+        group.user_set.add(user)
+
+        return user

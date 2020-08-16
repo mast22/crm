@@ -1,65 +1,68 @@
 {% extends 'base.html' %}
+{% load auth_extras %}
 
 {% block head %}
-  {% load static %}
-  <link rel="stylesheet" type="text/css" href="{% static 'tasks/css/styles.css' %}">
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'tasks/css/styles.css' %}">
 {% endblock head %}
 
 {% block content %}
-  <div class="container">
-    <div class="row">
-      <div class="col">
-        <ul class="nav flex-column">
-          <li class="nav-item">
-            Заявки
-          </li>
-{#            Тимлид - на оценке, в работе#}
-{##}
-{#            На оценке - созданные ПМами заявки выбираются тим лидами#}
-{#            В работе - заявки, которые выполнят данный Тимлид#}
-{##}
-{#            ПМ - входящие, в работе#}
-{##}
-{#            Входящие - созданные заявки, которые не были отданы в работу#}
-{#            В работе - заявки, отданные в работе#}
-            <li class="nav-item">
-            <a class="nav-link" href="{% url 'tasks:task-list' %}incoming/"><i class="far fa-check-circle"></i> Входящие</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'tasks:filter-task-status' 'in-progress' %}"><i class="far fa-clock"></i> В
-              работе</a>
-          </li>
-        </ul>
-      </div>
-      <div class="col-8">
-        <h3>Page header</h3>
-        <nav class="nav">
-          {% load auth_extras %}
-          {% if user|has_group:"Project Manager" %}
-            <a class="nav-link" href="{% url 'tasks:filter-task-status' 'new' %}">На оценке</a>
-            {# <a class="nav-link" href="{% url 'tasks:filter-task-status' 'questioned' %}">Есть вопросы</a>#}
-            <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rated' %}">Оцененные</a>
-          {% elif user|has_group:"Team Leader" %}
-            <a class="nav-link" href="{% url 'tasks:filter-task-status' 'new' %}">Новые</a>
-            <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rated' %}">Оцененные</a>
-            <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rejected' %}">Отклоненные</a>
-          {% endif %}
-        </nav>
-        {% for task in object_list %}
-          <div class="task-list">
-            <div class="media">
-              <div class="media-body">
-                <a href="{% url 'tasks:task-detail' task.id %}"><h5 class="mt-0">{{ task.name }}</h5></a>
-                <span>Статус: {{ task.get_status_display }}</span>
-                <p><a href="{% url 'tasks:task-detail' task.id %}">#{{ task.id }}</a> {{ task.created_at }}
-                  -- {{ task.author }}</p>{{ task.text|truncatechars:50 }}
-              </div>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        Заявки
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'tasks:task-list' %}incoming/"><i
+                                class="far fa-check-circle"></i>
+
+                    {% if user|has_group:"Project Manager" %}
+                        Входящие
+                    {% elif user|has_group:"Team Leader" %}
+                        На оценке
+                    {% endif %}
+
+                            </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'tasks:filter-task-status' 'in-progress' %}"><i
+                                class="far fa-clock"></i> В
+                            работе</a>
+                    </li>
+                </ul>
             </div>
-          </div>
-        {% endfor %}
-      </div>
-      <div class="col"></div>
+            <div class="col-8">
+                <h3>Page header</h3>
+                <nav class="nav">
+                    {% if user|has_group:"Project Manager" %}
+                        <a class="nav-link" href="{% url 'tasks:filter-task-status' 'new' %}">На оценке</a>
+                        {# <a class="nav-link" href="{% url 'tasks:filter-task-status' 'questioned' %}">Есть вопросы</a>#}
+                        <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rated' %}">Оцененные</a>
+                    {% elif user|has_group:"Team Leader" %}
+                        <a class="nav-link" href="{% url 'tasks:filter-task-status' 'new' %}">Новые</a>
+                        <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rated' %}">Оцененные</a>
+                        <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rejected' %}">Отклоненные</a>
+                    {% endif %}
+                </nav>
+                {% for task in object_list %}
+                    <div class="task-list">
+                        <div class="media">
+                            <div class="media-body">
+                                <a href="{% url 'tasks:task-detail' task.id %}"><h5 class="mt-0">{{ task.name }}</h5>
+                                </a>
+                                <span>Статус: {{ task.get_status_display }}</span>
+                                <p>
+                                    <a href="{% url 'tasks:task-detail' task.id %}">#{{ task.id }}</a> {{ task.created_at }}
+                                    -- {{ task.author }}</p>{{ task.text|truncatechars:50 }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="col"></div>
+        </div>
     </div>
-  </div>
 
 {% endblock content %}

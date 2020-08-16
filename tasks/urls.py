@@ -12,7 +12,7 @@ urlpatterns = [
     path('<int:pk>/put-to-work/', v.put_to_work, name='put-to-work'),
     path('<int:task_id>/reject/', v.reject_task, name='reject-task'),
     path(
-        '<str:status>/', v.FilterByStatusTaskView.as_view(), name='filter-task-status',
+        '<str:status>/', v.GroupFilterByStatusTaskView.as_view(), name='filter-task-status',
     ),
     path('<int:pk>/accept-from-rejected/', v.accept_from_rejected, name='accept-from-rejected'),
     path('file/<int:pk>/update-comment/', v.FileUpdate.as_view(), name='update-file-comment'),

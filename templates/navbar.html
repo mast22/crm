@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-5">
-  <a class="navbar-brand" href="{% url 'home' %}">ОАО Рога и копыта</a>
+  <a class="navbar-brand" href="{% url 'tasks:task-list' %}">ОАО Рога и копыта</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -15,21 +15,11 @@
       <i class="fas fa-plus"></i> Создать Заявку</a>
       </li>
           {% endif %}
-
-        {% if perms.tasks.view_task %}
-
-      <li class="nav-item">
-        <a class="nav-link" href="{% url 'tasks:task-list' %}">
-      <i class="fas fa-list"></i> Список Заявок</a>
-      </li>
-
-          {% endif %}
-
       {% load notifications_tags %}
       {% notifications_unread as unread_count %}
 
       <li class="nav-item">
-        <a class="nav-link" href="{% url 'profile' %}"><i class="fas fa-user"></i> Профиль {{ user.get_full_name }}</a>
+        <a class="nav-link" href="{% url 'users:account' user.id %}"><i class="fas fa-user"></i> {{ user.get_full_name }}</a>
       </li>
 
       <li class="nav-item text-light">

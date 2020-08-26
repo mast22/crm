@@ -1,4 +1,5 @@
 from django.shortcuts import reverse, get_object_or_404, render
+from common.const import PERFORMER_GROUP_NAME, MANAGER_GROUP_NAME
 from django.db import models as m
 from django.views.generic import (
     DetailView,
@@ -56,16 +57,26 @@ def change_task_view(request, pk):
     return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
 
 
+class TaskTypeFilter:
+    def get_queryset(self):
+        user = self.request.user
+        qs = super().get_queryset()
+
+        qs = qs.filter(work_type__in=user.work_types, work_direction__in=user.work_directions)
+
+        return qs
+
+
 class GroupFilterMixin:
     def get_queryset(self):
         queryset = super().get_queryset()
         user = self.request.user
-        if user.is_project_manager():
+        if user.is_manager():
             queryset = queryset.filter(author=user)
 
-        if user.is_team_leader():
+        if user.is_performer():
             """
-            Для ТЛа удаляем заявки, которые находятся в прогрессе у других ТЛов
+            Для исполнителя удаляем заявки, которые находятся в прогрессе у других ТЛов
             И которые были завершены не текущим пользователем
             """
             queryset = queryset.filter(
@@ -75,7 +86,7 @@ class GroupFilterMixin:
         return queryset
 
 
-class AllTaskList(PermissionRequiredMixin, GroupFilterMixin, ListView):
+class AllTaskList(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, ListView):
     model = Task
     permission_required = 'tasks.view_task'
 
@@ -96,26 +107,58 @@ class AllTaskList(PermissionRequiredMixin, GroupFilterMixin, ListView):
             return queryset
 
 
-class GroupFilterByStatusTaskView(PermissionRequiredMixin, GroupFilterMixin, ListView):
+class TaskListView(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, ListView):
     model = Task
     permission_required = 'tasks.view_task'
 
     def get_queryset(self):
-        status = self.kwargs['status']
-        incoming_statuses = [
-            TaskStatuses.NEW,
-            TaskStatuses.RATED,
-            TaskStatuses.REJECTED,
-        ]
-        queryset = super().get_queryset()
-        if status == 'incoming':
-            return queryset.filter(status__in=incoming_statuses)
-        elif status in incoming_statuses:
-            return queryset.filter(status=status)
-        elif status == TaskStatuses.IN_PROGRESS:
-            return queryset.filter(status=TaskStatuses.IN_PROGRESS)
+        modifier = self.kwargs['modifier']
+        user = self.request.user
+        # Запретим доступы для групп
+        if modifier.startswith('performer') and not user.groups.filter(name=PERFORMER_GROUP_NAME):
+            raise PermissionDenied
+        if modifier.startswith('manager') and not user.groups.filter(name=MANAGER_GROUP_NAME):
+            raise PermissionDenied
+
+        # В другом миксине мы уже фильтруем по группам
+        filters = {
+            # Копипаста из лямбд ниже, лучше придумать как переделать
+            'manager-incoming': lambda qs: qs.filter(
+                m.Q(status=TaskStatuses.NEW) |
+                m.Q(author_id=user.id, status=TaskStatuses.QUESTIONED) |
+                m.Q(author_id=user.id, status=TaskStatuses.RATED) |
+                m.Q(author_id=user.id, status=TaskStatuses.IN_PROGRESS)
+            ),
+            'manager-new': lambda qs: qs.filter(status=TaskStatuses.NEW),
+            'manager-questioned': lambda qs: qs.filter(author_id=user.id, status=TaskStatuses.QUESTIONED),
+            'manager-rated': lambda qs: qs.filter(author_id=user.id, status=TaskStatuses.RATED),
+            'manager-in-process': lambda qs: qs.filter(author_id=user.id, status=TaskStatuses.IN_PROGRESS),
+
+            # Копипаста из лямбд ниже, лучше придумать как переделать
+            'performer-incoming': lambda qs: qs.filter(
+                m.Q(status__in=[TaskStatuses.NEW, TaskStatuses.RATED, TaskStatuses.QUESTIONED]) |
+                m.Q(task_statuses__user=user, task_statuses__type=TaskStatusTypes.ACCEPTED) |
+                m.Q(task_statuses__user=user, task_statuses__type=TaskStatusTypes.REJECTED) |
+                m.Q(task_statuses__user=user, task_statuses__type=TaskStatusTypes.IN_WORK)
+            ),
+            'performer-new': lambda qs: qs.filter(status__in=[TaskStatuses.NEW, TaskStatuses.RATED, TaskStatuses.QUESTIONED]),
+            'performer-rated': lambda qs: qs.filter(task_statuses__user=user, task_statuses__type=TaskStatusTypes.ACCEPTED),
+            'performer-rejected': lambda qs: qs.filter(task_statuses__user=user, task_statuses__type=TaskStatusTypes.REJECTED),
+            'performer-in-process': lambda qs: qs.filter(task_statuses__user=user, task_statuses__type=TaskStatusTypes.IN_WORK),
+        }
+
+        # Объединяет первые 3 фильтра исполнителя
+        # filters['performer-incoming'] = lambda qs: qs.filters['performer-new'].filters['performer-rated'].filters['performer-rejected']
+        # Объединяет первые 3 фильтра менеджера
+        # filters['manager-incoming'] = lambda qs: qs.filters['manager-new'].filters['manager-questioned'](qs).filters['manager-in-process'](qs)
+
+        qs = super().get_queryset()
+        if modifier in filters.keys():
+            filter = filters[modifier]
+            qs = filter(qs)
         else:
-            return Http404()
+            raise Http404
+        return qs
 
 
 class CreateTaskView(PermissionRequiredMixin, CreateView):

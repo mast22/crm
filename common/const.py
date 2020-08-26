@@ -1,2 +1,2 @@
-TEAM_LEADER_GROUP_NAME = 'Team Leader'
-PROJECT_MANAGER_GROUP_NAME = 'Project Manager'
+PERFORMER_GROUP_NAME = 'performer'
+MANAGER_GROUP_NAME = 'manager'

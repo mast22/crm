@@ -65,7 +65,7 @@
         {% if status.price is None and status.deadline is None %}
             <p>Отклонена {{ status.last_modified }}</p>
         {% else %}
-            <p>{{ status.last_modified }} Цена: {{ status.price }} Срок выполнения: {{ status.deadline }}</p>
+            <p>{{ status.last_modified }} Цена: {{ status.price }} Срок выполнения: {{ status.deadline }} {{ status.is_actual }}</p>
         {% endif %}
     {% endfor %}
 

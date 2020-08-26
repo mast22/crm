@@ -4,7 +4,9 @@
     <div class="media">
         <div class="media-body" id='{{ node.id }}'>
             <span class="comment-info">
-              <a href="{% url 'comments:comment-detail' node.id %}">№ {{ node.id }}</a> -- {{ node.created_at }} -- {{ node.author }}
+              <a href="{% url 'comments:comment-detail' node.id %}">№ {{ node.id }}</a> -- {{ node.created_at }} --
+                {% if node.author == user %} Вы: {% endif %} {# Отметка текущего пользователя #}
+                {% if node.author == object.author %} Исполнитель {% else %} Пользователь №{{ node.id }} {% endif %} {# Отметка пользователя #}
                 {% if node.can_be_edited and node.author == user %}
                     <a href="{% url 'comments:comment-edit' node.id %}"><i class="fas fa-edit"></i> Изменить текст</a>
                     </span>

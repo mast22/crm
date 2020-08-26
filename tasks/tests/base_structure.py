@@ -1,13 +1,15 @@
 from django.test import Client, TestCase
+from django.utils import timezone
+from datetime import timedelta
 from os.path import join
 import random, string
 from django.shortcuts import reverse
 from common.preload import run_preload
 from comments.models import Comment, CommentFile
-from tasks.models import File, Task
+from tasks.models import File, Task, TaskStatus
 from users.models import Group, User
 from django.conf import settings
-from common.const import TEAM_LEADER_GROUP_NAME, PROJECT_MANAGER_GROUP_NAME
+from common.const import PERFORMER_GROUP_NAME, MANAGER_GROUP_NAME
 
 
 class BaseTaskTests(TestCase):
@@ -15,8 +17,8 @@ class BaseTaskTests(TestCase):
     def setUpTestData(cls):
         run_preload(add_users=True)
 
-        cls.TL_group = Group.objects.get(name=TEAM_LEADER_GROUP_NAME)
-        cls.PM_group = Group.objects.get(name=PROJECT_MANAGER_GROUP_NAME)
+        cls.performer_group = Group.objects.get(name=PERFORMER_GROUP_NAME)
+        cls.manager_group = Group.objects.get(name=MANAGER_GROUP_NAME)
 
     def setUp(self):
         self.client = Client()
@@ -26,7 +28,7 @@ class BaseTaskTests(TestCase):
         file_2 = join(settings.BASE_DIR, 'templates/navbar.html')
 
         comment = Comment.objects.create(
-            taks=task,
+            task=task,
             author=creator,
             text='Lorem ipsum dolor sit amet',
             parent=parent
@@ -65,17 +67,28 @@ class BaseTaskTests(TestCase):
 
         return response
 
-    def random_string(self, length):
+    @classmethod
+    def random_string(cls, length):
         return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
 
-    def create_user(self, username: str, group: Group):
+    @classmethod
+    def create_user(cls, username: str, group: Group):
         """Создаёт пользователя, возвращает его и устанавливает аттрибутом """
         user = User.objects.create_user(
             username,
-            email=f'{self.random_string(5)}@mail.com',
-            password=self.random_string(10)
+            email=f'{cls.random_string(5)}@mail.com',
+            password=cls.random_string(10)
         )
 
         group.user_set.add(user)
 
         return user
+
+    def create_task_status(self, task: Task, performer: User, status: str):
+        return TaskStatus.objects.create(
+            task=task,
+            user=performer,
+            type=status,
+            price=1000,
+            deadline=timezone.now() + timedelta(hours=128),
+        )

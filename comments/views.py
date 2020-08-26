@@ -6,7 +6,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth import get_user_model
 from notifications.signals import notify
 from tasks.const import TaskStatuses
-from common.const import TEAM_LEADER_GROUP_NAME, PROJECT_MANAGER_GROUP_NAME
+from common.const import PERFORMER_GROUP_NAME, MANAGER_GROUP_NAME
 from django.contrib import messages
 from django.forms import inlineformset_factory
 
@@ -45,18 +45,18 @@ def comment_create(request, task_id, parent_id=None):
 
             if (
                 task.status == TaskStatuses.NEW
-                and user.groups.filter(name=TEAM_LEADER_GROUP_NAME).exists()
+                and user.groups.filter(name=PERFORMER_GROUP_NAME).exists()
             ):
-                # Если статус заявки новый и TL пишет комментарий
+                # Если статус заявки новый и исполнитель пишет комментарий
                 # То статус меняется на "есть вопросы"
                 task.status = TaskStatuses.QUESTIONED
                 task.save()
 
             if (
                 task.status == TaskStatuses.QUESTIONED
-                and user.groups.filter(name=PROJECT_MANAGER_GROUP_NAME).exists()
+                and user.groups.filter(name=MANAGER_GROUP_NAME).exists()
             ):
-                # Если статус заявки "есть вопросы" и PM пишет комментарий
+                # Если статус заявки "есть вопросы" и менеджер пишет комментарий
                 # То статус меняется на "На оценке"
                 task.status = TaskStatuses.NEW
                 task.save()

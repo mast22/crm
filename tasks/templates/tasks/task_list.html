@@ -6,6 +6,22 @@
     <link rel="stylesheet" type="text/css" href="{% static 'tasks/css/styles.css' %}">
 {% endblock head %}
 
+{% comment %}
+
+manager-incoming
+manager-new
+manager-questioned
+manager-rated
+manager-in-process
+
+performer-incoming
+performer-new
+performer-rated
+performer-rejected
+performer-in-process
+
+{% endcomment %}
+
 {% block content %}
     <div class="container">
         <div class="row">
@@ -15,42 +31,43 @@
                         Заявки
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'tasks:task-list' %}incoming/"><i
-                                class="far fa-check-circle"></i>
 
-                    {% if user|has_group:"Project Manager" %}
-                        Входящие
-                    {% elif user|has_group:"Team Leader" %}
-                        На оценке
-                    {% endif %}
+                        {% if user|has_group:"manager" %}
+                            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-incoming' %}"><i class="far fa-check-circle"></i> Входящие</a>
+                        {% elif user|has_group:"performer" %}
+                            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-incoming' %}"><i class="far fa-check-circle"></i> На оценке</a>
+                        {% endif %}
 
-                            </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'tasks:filter-task-status' 'in-progress' %}"><i
-                                class="far fa-clock"></i> В
-                            работе</a>
+
+                        {% if user|has_group:"manager" %}
+                            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-in-process' %}"><i class="far fa-clock"></i> В работе</a>
+                        {% elif user|has_group:"performer" %}
+                            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-in-process' %}"><i class="far fa-clock"></i> В работе</a>
+                        {% endif %}
+
                     </li>
                 </ul>
             </div>
             <div class="col-8">
                 <h3>Page header</h3>
                 <nav class="nav">
-                    {% if user|has_group:"Project Manager" %}
-                        <a class="nav-link" href="{% url 'tasks:filter-task-status' 'new' %}">На оценке</a>
-                        {# <a class="nav-link" href="{% url 'tasks:filter-task-status' 'questioned' %}">Есть вопросы</a>#}
-                        <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rated' %}">Оцененные</a>
-                    {% elif user|has_group:"Team Leader" %}
-                        <a class="nav-link" href="{% url 'tasks:filter-task-status' 'new' %}">Новые</a>
-                        <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rated' %}">Оцененные</a>
-                        <a class="nav-link" href="{% url 'tasks:filter-task-status' 'rejected' %}">Отклоненные</a>
+                    {% if user|has_group:"performer" %}
+                        <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-new' %}">На оценке</a>
+                         <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-rejected' %}">Отклоненные</a>
+                        <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-rated' %}">Оцененные</a>
+                    {% elif user|has_group:"manager" %}
+                        <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-new' %}">Новые</a>
+                        <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-questioned' %}">Есть вопросы</a>
+                        <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-rated' %}">Оцененные</a>
                     {% endif %}
                 </nav>
                 {% for task in object_list %}
                     <div class="task-list">
                         <div class="media">
                             <div class="media-body">
-                                <a href="{% url 'tasks:task-detail' task.id %}"><h5 class="mt-0">{{ task.name }}</h5>
+                                <a href="{% url 'tasks:task-detail' task.id %}"><h5 class="mt-0">{{ task.work_type }}: {{ task.name }}</h5>
                                 </a>
                                 <span>Статус: {{ task.get_status_display }}</span>
                                 <p>

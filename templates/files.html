@@ -1,5 +1,5 @@
-<span class="extra-info">Файлы</span><br>
 {% if files %}
+    <span class="extra-info">Файлы</span><br>
     {% for file in files %}
         <div class="file">
             {% if editable and author == user %}
@@ -11,11 +11,6 @@
     {% if editable and author == user %}
         <input type="text" class="file-comment" id="{{ file.file.id }}" value="{{ file.file.comment }}">
         <span id="saved-{{ file.file.id }}" class="file-comment-saved">Сохранено</span>
-        {#    {% if file.file.comment %}#}
-        {#        <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment">Изменить комментарий файла</a>#}
-        {#    {% else %}#}
-        {#        <a href="{% url 'tasks:update-file-comment' file.file.id %}" class="file-comment">Добавить комментарий к файлу</a>#}
-        {#    {% endif %}#}
     {% else %}
         <input type="text" class="file-comment" id="{{ file.file.id }}" value="{{ file.file.comment }}" disabled>
     {% endif %}

@@ -21,6 +21,7 @@ class CreateTaskForm(f.ModelForm):
             'company',
             'text',
             'files',
+            'teacher_name',
             'wanted_deadline',
         ]
 

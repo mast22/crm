@@ -2,38 +2,51 @@ from django.contrib.auth.models import Group, Permission
 from users.models import User
 from django.conf import settings
 from django.db import transaction
-from .const import TEAM_LEADER_GROUP_NAME, PROJECT_MANAGER_GROUP_NAME
-
+from .const import PERFORMER_GROUP_NAME, MANAGER_GROUP_NAME
+from tasks.models import WorkType, WorkDirection
 
 def run_preload(add_users: bool):
-    tl = None
-    pm = None
+    performer = None
+    manager = None
 
     with transaction.atomic():
+        WorkType.objects.bulk_create([
+            WorkType(name='Дипломная работа'),
+            WorkType(name='Магистерская диссертация'),
+            WorkType(name='Научная статья'),
+            WorkType(name='Отчёт по практике'),
+            WorkType(name='Доклад'),
+            WorkType(name='Презентация'),
+        ])
+
+        WorkDirection.objects.bulk_create([
+            WorkDirection(name='Менеджмент'),
+            WorkDirection(name='Маркетинг'),
+            WorkDirection(name='Нефтяная промышленность'),
+            WorkDirection(name='Программирование'),
+        ])
 
         if add_users:
             User.objects.create_superuser(
                 username='admin', email='admin@admin.com', password='admin'
             )
-            tl = User.objects.create_user(
-                username='team_leader',
-                email='team_leader@admin.com',
+            performer = User.objects.create_user(
+                username='performer',
+                email='performer@admin.com',
                 password='admin',
-                first_name='Team',
-                last_name='Leader',
+                first_name='performer',
             )
-            pm = User.objects.create_user(
-                username='project_manager',
-                email='project_manager.com',
+            manager = User.objects.create_user(
+                username='manager',
+                email='manager@gmail.com',
                 password='admin',
-                first_name='Project',
-                last_name='Manager',
+                first_name='manager',
             )
 
         with transaction.atomic():
-            team_leader_group = Group.objects.create(name=TEAM_LEADER_GROUP_NAME,)
+            team_leader_group = Group.objects.create(name=PERFORMER_GROUP_NAME, )
             project_manager_group = Group.objects.create(
-                name=PROJECT_MANAGER_GROUP_NAME
+                name=MANAGER_GROUP_NAME
             )
 
             project_manager_permissions = [
@@ -91,6 +104,8 @@ def run_preload(add_users: bool):
 
             team_leader_group.permissions.set(team_leader_permissions)
 
-            if tl and pm:
-                tl.groups.add(team_leader_group)
-                pm.groups.add(project_manager_group)
+            if performer and manager:
+                performer.groups.add(team_leader_group)
+                manager.groups.add(project_manager_group)
+
+            performer.work_types.set([WorkType.objects.first(), WorkType.objects.last()])

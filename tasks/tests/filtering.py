@@ -9,6 +9,7 @@ from tasks.views import GroupFilterMixin
 
 class Filter:
     """dependency injection"""
+
     class request:
         pass
 
@@ -18,76 +19,73 @@ class Filter:
     def get_queryset(self):
         return Task.objects.all()
 
-
-
-
 class FilteringTasksTests(BaseTaskTests):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.project_manager = User.objects.get(username='project_manager')
-        cls.team_leader = User.objects.get(username='team_leader')
+        cls.manager = User.objects.get(username='manager')
+        cls.performer = User.objects.get(username='performer')
         cls.task = Task.objects.create(
             name='тестовый таск',
             phone='+79991568802',
             whats_app='+79991568802',
-            author=cls.project_manager,
+            author=cls.manager,
             email='email@email.com',
-            work_type=WorkTypeChoices.TEST1,
             address='Кукушкина 12',
             company='Компания',
             text='Рандомный текст',
             wanted_deadline=datetime.now(),
         )
 
+
     def test_task_exists_for_author(self):
         class TestFilter(GroupFilterMixin, Filter):
             pass
 
-        filter = TestFilter(self.project_manager)
+        filter = TestFilter(self.manager)
         self.assertIn(self.task, filter.get_queryset(), 'У создавшего заявку ПМа должна быть заявка')
 
     def test_task_absent_for_not_author(self):
         class TestFilter(GroupFilterMixin, Filter):
             pass
 
-        project_manager2 = self.create_user('project_manager2', self.PM_group)
-        filter = TestFilter(project_manager2)
+        manager2 = self.create_user('manager2', self.manager_group)
+        filter = TestFilter(manager2)
         self.assertNotIn(self.task, filter.get_queryset(), 'У другого ПМа должена отсутствовать заявка')
 
-    def test_task_exists_for_team_leader(self):
+    def test_task_exists_for_performer(self):
         class TestFilter(GroupFilterMixin, Filter):
             pass
 
-        team_leader2 = self.create_user('team_leader2', self.TL_group)
-        filter = TestFilter(team_leader2)
+        performer2 = self.create_user('performer2', self.performer_group)
+        filter = TestFilter(performer2)
         self.assertIn(self.task, filter.get_queryset(), '')
 
-        team_leader2.delete()
-        team_leader2 = None
+        performer2.delete()
+        performer2 = None
 
-    def test_task_absent_for_other_team_leaders_when_its_in_progress(self):
+    def test_task_absent_for_other_performers_when_its_in_progress(self):
         class TestFilter(GroupFilterMixin, Filter):
             pass
 
-        team_leader2 = self.create_user('team_leader2', self.TL_group)
+        performer2 = self.create_user('performer2', self.performer_group)
 
         self.task.status = TaskStatuses.IN_PROGRESS
         self.task.save()
 
         task_status = TaskStatus.objects.create(
             task=self.task,
-            user=self.team_leader,
+            user=self.performer,
             type=TaskStatusTypes.ACCEPTED,
             price=10000,
             deadline=datetime.now(),
         )
 
-        filter = TestFilter(team_leader2)
-        self.assertNotIn(self.task, filter.get_queryset(), 'ТЛам видны все заявки')
+        filter = TestFilter(performer2)
+        self.assertNotIn(self.task, filter.get_queryset(), 'Исполнителям видны все заявки')
 
-        team_leader2.delete()
-        team_leader2 = None
+        performer2.delete()
+        performer2 = None
 
 
 

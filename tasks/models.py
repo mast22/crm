@@ -4,6 +4,7 @@ from datetime import timedelta
 from django.urls import reverse
 from django.dispatch import receiver
 from django.conf import settings
+from django.forms.models import model_to_dict
 from common.const import MANAGER_GROUP_NAME
 from .const import (
     TaskStatuses,
@@ -16,9 +17,15 @@ from .const import (
 class WorkType(m.Model):
     name = m.CharField(max_length=100)
 
+    def __str__(self):
+        return self.name
+
 
 class WorkDirection(m.Model):
     name = m.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
 
 
 class Task(m.Model):
@@ -34,8 +41,8 @@ class Task(m.Model):
     teacher_name = m.CharField('ФИО руководителя', null=True, max_length=100)
     phone = m.CharField('Номер телефона', max_length=150)
     whats_app = m.CharField('What\'s App', max_length=150)
-    work_type = m.ForeignKey(WorkType, on_delete=m.SET_NULL, null=True)
-    work_direction = m.ForeignKey(WorkDirection, on_delete=m.SET_NULL, null=True)
+    work_type = m.ForeignKey(WorkType, on_delete=m.SET_NULL, null=True, verbose_name='Тип работы')
+    work_direction = m.ForeignKey(WorkDirection, on_delete=m.SET_NULL, null=True, verbose_name='Направление')
     email = m.EmailField('Электронная почта')
     address = m.CharField('Адрес', max_length=150)
     company = m.CharField('Компания', max_length=150)
@@ -138,3 +145,36 @@ class TaskFile(m.Model):
 @receiver(m.signals.pre_delete, sender=File)
 def delete_file(sender, instance, *args, **kwargs):
     instance.file.delete(False)
+
+@receiver(m.signals.pre_save, sender=Task)
+def change_task(sender, instance: Task, *args, **kwargs):
+    """
+    Добавляет комментарий к измененному полю
+    TODO нужен тест
+    TODO Нужен список игнорируемых полей
+    """
+    if instance.id is not None:
+        change_log = []
+        previous = Task.objects.get(id=instance.id)
+        checked_fields = [
+            'name',
+            'text',
+            'wanted_deadline',
+            'work_type',
+            'work_direction',
+        ]
+        for field in checked_fields:
+            previous_value = getattr(previous, field)
+            current_value = getattr(instance, field)
+
+            if previous_value != current_value:
+                verbose_name = previous._meta.get_field(field).verbose_name
+                change_log.append(
+                    f'Поле "{verbose_name or field}" изменено из "{previous_value}" на "{current_value}".\n'
+                )
+
+        if change_log:
+            instance.comments.create(
+                author=instance.author,
+                text=''.join(change_log)
+            )

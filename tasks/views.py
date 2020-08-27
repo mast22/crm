@@ -17,7 +17,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin, UserPassesTestMi
 from django.http import Http404
 from django.urls import reverse_lazy
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test, permission_required
+from django.contrib.auth.decorators import permission_required
 from django.core.exceptions import PermissionDenied
 
 
@@ -41,8 +41,8 @@ class TaskDetail(PermissionRequiredMixin, UserPassesTestMixin, DetailView):
         if user.is_superuser:
             return True
         if (
-                self.request.user.has_perm('tasks.can_put_to_work')
-                and self.get_object().author != self.request.user
+            self.request.user.has_perm('tasks.can_put_to_work')
+            and self.get_object().author != self.request.user
         ):
             return False
         return True
@@ -62,7 +62,16 @@ class TaskTypeFilter:
         user = self.request.user
         qs = super().get_queryset()
 
-        qs = qs.filter(work_type__in=user.work_types, work_direction__in=user.work_directions)
+        if user.is_performer():
+            queries = {}
+            work_types = user.work_types.all()
+            work_directions = user.work_directions.all()
+
+            if work_types:
+                queries['work_type__in'] = work_types
+            if work_directions:
+                queries['work_direction__in'] = work_directions
+            qs = qs.filter(**queries)
 
         return qs
 
@@ -116,43 +125,43 @@ class TaskListView(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, Li
         user = self.request.user
         # Запретим доступы для групп
         if modifier.startswith('performer') and not user.groups.filter(name=PERFORMER_GROUP_NAME):
-            raise PermissionDenied
+            raise PermissionDenied()
         if modifier.startswith('manager') and not user.groups.filter(name=MANAGER_GROUP_NAME):
-            raise PermissionDenied
+            raise PermissionDenied()
+
+        qs = super().get_queryset()
 
         # В другом миксине мы уже фильтруем по группам
         filters = {
             # Копипаста из лямбд ниже, лучше придумать как переделать
-            'manager-incoming': lambda qs: qs.filter(
+            'manager-incoming': lambda qsf: qsf.filter(
                 m.Q(status=TaskStatuses.NEW) |
                 m.Q(author_id=user.id, status=TaskStatuses.QUESTIONED) |
                 m.Q(author_id=user.id, status=TaskStatuses.RATED) |
                 m.Q(author_id=user.id, status=TaskStatuses.IN_PROGRESS)
             ),
-            'manager-new': lambda qs: qs.filter(status=TaskStatuses.NEW),
-            'manager-questioned': lambda qs: qs.filter(author_id=user.id, status=TaskStatuses.QUESTIONED),
-            'manager-rated': lambda qs: qs.filter(author_id=user.id, status=TaskStatuses.RATED),
-            'manager-in-process': lambda qs: qs.filter(author_id=user.id, status=TaskStatuses.IN_PROGRESS),
+            'manager-new': lambda qsf: qsf.filter(status=TaskStatuses.NEW),
+            'manager-questioned': lambda qsf: qsf.filter(author_id=user.id, status=TaskStatuses.QUESTIONED),
+            'manager-rated': lambda qsf: qsf.filter(author_id=user.id, status=TaskStatuses.RATED),
+            'manager-in-process': lambda qsf: qsf.filter(author_id=user.id, status=TaskStatuses.IN_PROGRESS),
 
             # Копипаста из лямбд ниже, лучше придумать как переделать
-            'performer-incoming': lambda qs: qs.filter(
+            'performer-incoming': lambda qsf: qsf.filter(
                 m.Q(status__in=[TaskStatuses.NEW, TaskStatuses.RATED, TaskStatuses.QUESTIONED]) |
                 m.Q(task_statuses__user=user, task_statuses__type=TaskStatusTypes.ACCEPTED) |
                 m.Q(task_statuses__user=user, task_statuses__type=TaskStatusTypes.REJECTED) |
                 m.Q(task_statuses__user=user, task_statuses__type=TaskStatusTypes.IN_WORK)
             ),
-            'performer-new': lambda qs: qs.filter(status__in=[TaskStatuses.NEW, TaskStatuses.RATED, TaskStatuses.QUESTIONED]),
-            'performer-rated': lambda qs: qs.filter(task_statuses__user=user, task_statuses__type=TaskStatusTypes.ACCEPTED),
-            'performer-rejected': lambda qs: qs.filter(task_statuses__user=user, task_statuses__type=TaskStatusTypes.REJECTED),
-            'performer-in-process': lambda qs: qs.filter(task_statuses__user=user, task_statuses__type=TaskStatusTypes.IN_WORK),
+            'performer-new': lambda qsf: qsf.filter(status__in=[TaskStatuses.NEW, TaskStatuses.RATED, TaskStatuses.QUESTIONED]),
+            'performer-rated': lambda qsf: qsf.filter(task_statuses__user=user, task_statuses__type=TaskStatusTypes.ACCEPTED),
+            'performer-rejected': lambda qsf: qsf.filter(task_statuses__user=user, task_statuses__type=TaskStatusTypes.REJECTED),
+            'performer-in-process': lambda qsf: qsf.filter(task_statuses__user=user, task_statuses__type=TaskStatusTypes.IN_WORK),
         }
 
         # Объединяет первые 3 фильтра исполнителя
         # filters['performer-incoming'] = lambda qs: qs.filters['performer-new'].filters['performer-rated'].filters['performer-rejected']
         # Объединяет первые 3 фильтра менеджера
         # filters['manager-incoming'] = lambda qs: qs.filters['manager-new'].filters['manager-questioned'](qs).filters['manager-in-process'](qs)
-
-        qs = super().get_queryset()
         if modifier in filters.keys():
             filter = filters[modifier]
             qs = filter(qs)
@@ -297,26 +306,6 @@ def accept_from_rejected(request, pk):
         return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
 
     return render(request, template_name='tasks/taskstatus_form.html', context={'form': RateTaskForm()})
-
-
-# class AcceptFromRejectedView(PermissionRequiredMixin, UserPassesTestMixin, UpdateView):
-#     model = TaskStatus
-#     fields = ['deadline', 'price']
-#     template_name = 'tasks/change_task_status.html'
-#     permission_required = 'tasks.can_rate_task'
-#
-#     def form_valid(self, form):
-#         obj = form.save(commit=False)
-#         obj.status = TaskStatusTypes.ACCEPTED
-#         obj.save()
-#
-#         return HttpResponseRedirect(reverse('tasks:task-detail', args=(obj.task_id,)))
-#
-#     def get_success_url(self, **kwargs):
-#         return reverse('tasks:task-detail', kwargs={'pk': self.object.task_id})
-#
-#     def test_func(self):
-#         return self.request.user == self.get_object().user
 
 
 @permission_required('tasks.can_rate_task')

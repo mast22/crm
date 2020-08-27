@@ -18,7 +18,7 @@
     <div class="tab-content" id="pills-tabContent">
         <h3>{{ object.name }}</h3>
         <div class="tab-pane fade show active" id="pills-main" role="tabpanel" aria-labelledby="pills-home-tab">
-            <p>{{ object.text }}</p>
+            <p>{{ object.text|linebreaks }}</p>
             <p><small>Статус: {{ object.get_status_display }}, Дата добавления: {{ object.created_at }}</small></p>
             {% include 'files.html' with object=object editable=object.can_be_edited %}
             <hr>

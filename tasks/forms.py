@@ -32,9 +32,12 @@ class ChangeTaskForm(f.ModelForm):
             'name',
             'customer_name',
             'phone',
+            'text',
             'whats_app',
             'email',
             'notes',
+            'work_type',
+            'work_direction',
         ]
 
 

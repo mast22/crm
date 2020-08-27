@@ -9,9 +9,7 @@ def has_group(user, group_name):
     belonger = Group.objects.filter(name=group_name, user=user).exists()
     return belonger
 
-# @register.filter(name='resolve_status')
-# def resolve_status(user, task_name):
-#     """
-#     Позволяет отображать правильный статус в зависимости от имени группы пользователя
-#     """
-#     if Group.objects.filter(name=group_name, user=user).exists()
+
+@register.filter(name='task_sequence')
+def task_sequence(user_id: int, task_id: int):
+    return user_id + task_id

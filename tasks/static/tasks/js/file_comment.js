@@ -2,7 +2,7 @@ $(document).ready(function () {
     $(".file-comment").focusout(function () {
         console.log(this.id);
         const text = this.value;
-        const url = '/tasks/file/' + this.id + '/update-comment/';
+        const url = '/file/' + this.id + '/update-comment/';
         const csrf_token = getCookie('csrftoken');
 
         $.ajax({

@@ -18,7 +18,7 @@
         </div>
     {% endfor %}
 {% endif %}
-{% if editable %}
-    <a href="#">Добавить файлы</a>
+{% if editable and author == user %}
+    <a href="{{ edit_url }}">Добавить файлы</a>
 {% endif %}
 <br>

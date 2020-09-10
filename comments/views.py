@@ -1,14 +1,13 @@
 from django.shortcuts import render, reverse, get_object_or_404
 from django.views.generic import DetailView, ListView, CreateView, UpdateView
 from .models import Task, Comment, File, CommentFile
-from .forms import CreateCommentForm
+from .forms import CreateCommentForm, AddFileForm
 from django.http import HttpResponseRedirect
 from django.contrib.auth import get_user_model
 from notifications.signals import notify
 from tasks.const import TaskStatuses
 from common.const import PERFORMER_GROUP_NAME, MANAGER_GROUP_NAME
-from django.contrib import messages
-from django.forms import inlineformset_factory
+from django.core.exceptions import PermissionDenied
 
 User = get_user_model()
 
@@ -21,6 +20,14 @@ class CommentDetail(DetailView):
         """Включаем в queryset дочерние комменты"""
         obj = super(CommentDetail, self).get_object(queryset=queryset)
         return obj.get_descendants(include_self=True)
+
+def delete_comment(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+
+    if comment.can_be_edited() and request.user == comment.author:
+        comment.delete()
+
+    return HttpResponseRedirect(reverse('tasks:task-detail', args=(comment.task_id,)))
 
 
 def comment_create(request, task_id, parent_id=None):
@@ -88,3 +95,23 @@ class CommentUpdate(UpdateView):
     def get_success_url(self):
         comment = self.get_object()
         return reverse('tasks:task-detail', args=(comment.task_id,))
+
+def add_files(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+    if comment.author == request.user:
+        if request.method == 'POST':
+            form = AddFileForm(request.POST, request.FILES)
+            if form.is_valid():
+                comment_files = []
+                for file in request.FILES.getlist('files'):
+                    file_instance = File.objects.create(file=file)
+                    comment_files.append(CommentFile(comment=comment, file=file_instance))
+                CommentFile.objects.bulk_create(comment_files)
+                return HttpResponseRedirect(reverse('tasks:task-detail', args=(comment.task_id,)))
+            else:
+                return render(request, template_name='comments/comment_add_files.html', context={'form': form})
+        else:
+            form = AddFileForm()
+            return render(request, template_name='comments/comment_add_files.html', context={'form': form})
+    else:
+        return PermissionDenied()

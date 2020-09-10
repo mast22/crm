@@ -2,8 +2,8 @@
 {% load auth_extras %}
 
 {% block head %}
-    {% load static %}
-    <link rel="stylesheet" type="text/css" href="{% static 'tasks/css/styles.css' %}">
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'tasks/css/styles.css' %}">
 {% endblock head %}
 
 {% comment %}
@@ -23,63 +23,92 @@ performer-in-process
 {% endcomment %}
 
 {% block content %}
-    <div class="container">
-        <div class="row">
-            <div class="col">
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        Заявки
-                    </li>
-                    <li class="nav-item">
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            Заявки
+          </li>
+          <li class="nav-item">
 
-                        {% if user|has_group:"manager" %}
-                            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-incoming' %}"><i class="far fa-check-circle"></i> Входящие</a>
-                        {% elif user|has_group:"performer" %}
-                            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-incoming' %}"><i class="far fa-check-circle"></i> На оценке</a>
-                        {% endif %}
+            {% if user|has_group:"manager" %}
+              <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-incoming' %}"><i
+                class="far fa-check-circle"></i> Входящие</a>
+            {% elif user|has_group:"performer" %}
+              <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-incoming' %}"><i
+                class="far fa-check-circle"></i> На оценке</a>
+            {% endif %}
 
-                    </li>
-                    <li class="nav-item">
+          </li>
+          <li class="nav-item">
 
-                        {% if user|has_group:"manager" %}
-                            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-in-process' %}"><i class="far fa-clock"></i> В работе</a>
-                        {% elif user|has_group:"performer" %}
-                            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-in-process' %}"><i class="far fa-clock"></i> В работе</a>
-                        {% endif %}
+            {% if user|has_group:"manager" %}
+              <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-in-process' %}"><i
+                class="far fa-clock"></i> В работе</a>
+            {% elif user|has_group:"performer" %}
+              <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-in-process' %}"><i
+                class="far fa-clock"></i> В работе</a>
+            {% endif %}
 
-                    </li>
-                </ul>
-            </div>
-            <div class="col-8">
-                <h3>Page header</h3>
-                <nav class="nav">
-                    {% if user|has_group:"performer" %}
-                        <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-new' %}">На оценке</a>
-                         <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-rejected' %}">Отклоненные</a>
-                        <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-rated' %}">Оцененные</a>
-                    {% elif user|has_group:"manager" %}
-                        <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-new' %}">Новые</a>
-                        <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-questioned' %}">Есть вопросы</a>
-                        <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-rated' %}">Оцененные</a>
-                    {% endif %}
-                </nav>
-                {% for task in object_list %}
-                    <div class="task-list">
-                        <div class="media">
-                            <div class="media-body">
-                                <a href="{% url 'tasks:task-detail' task.id %}"><h5 class="mt-0">{{ task.work_type }}: {{ task.name }}</h5>
-                                </a>
-                                <span>Статус: {{ task.get_status_display }}</span>
-                                <p>
-                                    <a href="{% url 'tasks:task-detail' task.id %}">#{{ task.id }}</a> {{ task.created_at }}
-                                    -- {{ task.author }}</p>{{ task.text|truncatechars:50 }}
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-            <div class="col"></div>
+          </li>
+        </ul>
+      </div>
+      <div class="col-8">
+        <nav class="nav">
+          {% if user|has_group:"performer" %}
+            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-new' %}">На оценке</a>
+            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-rejected' %}">Отклоненные</a>
+            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'performer-rated' %}">Оцененные</a>
+          {% elif user|has_group:"manager" %}
+            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-new' %}">Новые</a>
+            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-questioned' %}">Есть вопросы</a>
+            <a class="nav-link" href="{% url 'tasks:filtered-task-list' 'manager-rated' %}">Оцененные</a>
+          {% endif %}
+        </nav>
+        <div>
+          {% if user|has_group:"performer" %}
+            {% for work_type in user.work_types.all %}
+              <input type="checkbox" id="work-type-{{ work_type.id }}" value="{{ work_type.id }}">
+              <label for="work-type-{{ work_type.id }}">{{ work_type }}</label><br>
+            {% endfor %}
+            <a href="#">Фильтровать</a>
+          {% endif %}
         </div>
+        {% for task in object_list %}
+          <div class="task-list">
+            <div class="media">
+              <div class="media-body">
+                {% if user|has_group:"performer" %}
+                  <a href="{% url 'tasks:task-detail' task.id %}"><h5
+                    class="mt-0">{{ task.work_type }}: {{ task.name }}</h5>
+                  </a>
+                {% else %}
+                  <a href="{% url 'tasks:task-detail' task.id %}"><h5
+                    class="mt-0">{{ task.customer_name }}: {{ task.phone }}</h5>
+                  </a>
+                {% endif %}
+                <span>Статус: {{ task.get_status_display }}</span>
+                <p>
+                  <a href="{% url 'tasks:task-detail' task.id %}">#{{ task.id }}</a> {{ task.created_at }}
+                  -- {{ task.author }}</p>{{ task.text|truncatechars:150 }}
+
+                <div class="action-buttons">
+                  {% if user|has_group:"manager" %}
+                    <a href="{% url 'tasks:delete-task' task.id %}">Удалить заявку</a>
+                  {% endif %}
+                  {% if user|has_group:"performer" %}
+                    <a href="{% url 'tasks:task-detail' task.id %}" class="btn btn-success">Подробнее</a>
+                    <a href="{% url 'tasks:reject-task' task.id %}" class="btn btn-danger">Отклонить</a>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="col"></div>
     </div>
+  </div>
 
 {% endblock content %}

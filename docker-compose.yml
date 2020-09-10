@@ -20,6 +20,7 @@ services:
     # Подождём установки postgres перед тем как запустим миграции
     command: bash -c "
       while !</dev/tcp/db/5432; do sleep 3; done;
+      python manage.py makemigrations &&
       python manage.py migrate &&
       python manage.py collectstatic --noinput &&
       gunicorn crm.wsgi:application --bind 0.0.0.0:8000 --workers 3 --reload"

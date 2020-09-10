@@ -10,7 +10,7 @@
 
             <li class="nav-item" role="presentation">
                 <a class="nav-link" id="pills-profile-tab" data-toggle="pill" href="#pills-extra" role="tab"
-                   aria-controls="pills-profile" aria-selected="false">Контакты</a>
+                   aria-controls="pills-profile" aria-selected="false">Информация</a>
             </li>
 
         </ul>
@@ -18,9 +18,14 @@
     <div class="tab-content" id="pills-tabContent">
         <h3>{{ object.name }}</h3>
         <div class="tab-pane fade show active" id="pills-main" role="tabpanel" aria-labelledby="pills-home-tab">
-            <p>{{ object.text|linebreaks }}</p>
+            <p><b>Основная идея: </b>{{ object.text|linebreaks }}</p>
+            <p><b>Тип работы: </b>{{ object.work_type }}</p>
+            <p><b>Направление работы: </b>{{ object.work_direction }}</p>
+            <p><b>Кафедра, ВУЗ, Институт: </b>{{ object.group }}</p>
+            <p><b>Желаемый срок: </b>{{ object.wanted_deadline }}</p>
             <p><small>Статус: {{ object.get_status_display }}, Дата добавления: {{ object.created_at }}</small></p>
-            {% include 'files.html' with object=object editable=object.can_be_edited %}
+            {% url 'tasks:add-files' object.id as edit_url %}
+            {% include 'files.html' with files=object.files.all editable=object.can_be_edited author=object.author edit_url=edit_url %}
             <hr>
         </div>
         {% if perms.tasks.can_see_extra %}
@@ -54,20 +59,40 @@
             <p>Вы отклонили заявку</p>
             <a href="{% url 'tasks:accept-from-rejected' object.id %}" class="btn btn-success">Принять</a>
         {% endif %}
-        {% if perms.tasks.can_put_to_work and user == object.author %}
-            <p>Отдать в работу?</p>
-            <a href="{% url 'tasks:put-to-work' object.id %}" class="btn btn-success">Отдать в работу</a>
-            <a href="{% url 'tasks:delete-task' object.id %}" class="btn btn-danger">Удалить заявку</a>
-        {% endif %}
     </div>
-    <h3 class="mt-5">Оценки исполнителей</h3>
-    {% for status in object.task_statuses.all %}
-        {% if status.price is None and status.deadline is None %}
-            <p>Отклонена {{ status.last_modified }}</p>
+
+    {% if not task.performer_chosen %}
+        <h3 class="mt-5">Оценки исполнителей</h3>
+        {% if perms.tasks.can_put_to_work and user == object.author %}
+            {% for status in object.task_statuses.all %}
+                {% if status.price is None and status.deadline is None %}
+                    <p>Отклонена {{ status.last_modified }}</p>
+                {% else %}
+                    <p>
+                        {{ status.last_modified }} Цена: {{ status.price }} Срок выполнения: {{ status.deadline }}
+                        {% if status.is_actual %}
+                            <a href="{% url 'tasks:put-to-work' object.id status.id %}">Отдать в работу</a>
+                        {% else %}
+                            <a href="{% url 'tasks:check-actuality' task_status.id %}">Проверить актуальность</a>
+                        {% endif %}
+                    </p>
+                {% endif %}
+            {% endfor %}
         {% else %}
-            <p>{{ status.last_modified }} Цена: {{ status.price }} Срок выполнения: {{ status.deadline }} {{ status.is_actual }}</p>
+            {% if task_status %}
+                <p>{{ task_status.last_modified }} Цена: {{ task_status.price }} Срок выполнения: {{ task_status.deadline }}
+                    {% if task_status.is_actual %}
+                        Заявка актуальна
+                    {% else %}
+                        <a href="{% url 'tasks:approve-task-status' task_status.id %}">Подтвердить актуальность</a>
+                    {% endif %}
+                </p>
+            {% endif %}
         {% endif %}
-    {% endfor %}
+    {% else %}
+        <h3>Исполнитель выбран. {{ task.get_task_status.user }}</h3>
+        <p>Цена: {{ task.get_task_status.price }} Срок выполнения: {{ task.get_task_status.deadline }}</p>
+    {% endif %}
 
     {% load static %}
     <script src="{% static '/comments/js/comments.js' %}"></script>

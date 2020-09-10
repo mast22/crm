@@ -12,4 +12,4 @@ def has_group(user, group_name):
 
 @register.filter(name='task_sequence')
 def task_sequence(user_id: int, task_id: int):
-    return user_id + task_id
+    return (user_id + task_id) * 2

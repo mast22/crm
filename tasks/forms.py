@@ -17,9 +17,9 @@ class CreateTaskForm(f.ModelForm):
             'whats_app',
             'email',
             'work_type',
-            'address',
-            'company',
+            'work_direction',
             'text',
+            'group',
             'files',
             'teacher_name',
             'wanted_deadline',
@@ -46,3 +46,9 @@ class RateTaskForm(f.ModelForm):
         model = TaskStatus
         fields = ['price', 'deadline']
         # widgets = {'task': f.HiddenInput()}
+
+
+class AddFileTaskForm(f.Form):
+    files = f.FileField(
+        widget=f.ClearableFileInput(attrs={'multiple': True}), required=False
+    )

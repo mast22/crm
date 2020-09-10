@@ -9,3 +9,8 @@ class CreateCommentForm(f.ModelForm):
     class Meta:
         model = Comment
         fields = ['text', 'files']
+
+class AddFileForm(f.Form):
+    files = f.FileField(
+        widget=f.ClearableFileInput(attrs={'multiple': True}), required=False
+    )

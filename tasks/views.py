@@ -1,6 +1,7 @@
 from django.shortcuts import reverse, get_object_or_404, render
 from common.const import PERFORMER_GROUP_NAME, MANAGER_GROUP_NAME
 from django.db import models as m
+from notifications.signals import notify
 from django.views.generic import (
     DetailView,
     ListView,
@@ -9,7 +10,7 @@ from django.views.generic import (
     DeleteView,
 )
 from .models import Task, TaskFile, File, TaskStatus
-from .forms import CreateTaskForm, RateTaskForm, ChangeTaskForm
+from .forms import CreateTaskForm, RateTaskForm, ChangeTaskForm, AddFileTaskForm
 from django.http import HttpResponseRedirect
 from django.contrib.postgres.search import SearchVector
 from .const import TaskStatuses, TaskStatusTypes
@@ -19,6 +20,8 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.core.exceptions import PermissionDenied
+from .filters import WorkTypeFilter
+from django_filters.views import FilterView
 
 
 class TaskDetail(PermissionRequiredMixin, UserPassesTestMixin, DetailView):
@@ -88,14 +91,18 @@ class GroupFilterMixin:
             Для исполнителя удаляем заявки, которые находятся в прогрессе у других ТЛов
             И которые были завершены не текущим пользователем
             """
-            queryset = queryset.filter(
-                ~m.Q(status__in=[TaskStatuses.IN_PROGRESS, TaskStatuses.COMPLETED],)
-                & ~m.Q(task_statuses__user=user))
+            queryset = queryset.exclude(
+                m.Q(status__in=[TaskStatuses.IN_PROGRESS, TaskStatuses.COMPLETED]),
+                ~m.Q(task_statuses__user=user)
+            )
 
         return queryset
 
 
 class AllTaskList(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, ListView):
+    """Все заявки + фильтрация по поиску
+    Игнорирует TaskListView
+    """
     model = Task
     permission_required = 'tasks.view_task'
 
@@ -117,6 +124,9 @@ class AllTaskList(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, Lis
 
 
 class TaskListView(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, ListView):
+    """Представление с фильтрацией по статусу. Фильтрует только по статусу
+    Игнорирует AllTaskList
+    """
     model = Task
     permission_required = 'tasks.view_task'
 
@@ -223,7 +233,7 @@ def accept_task_status(request, pk):
     return render(request, 'tasks/taskstatus_form.html', context={'form': form})
 
 
-@permission_required('can_rate_task')
+@permission_required('tasks.can_rate_task')
 def reject_task(request, task_id):
     # Проверяем если мы уже приняли заявку
     user = request.user
@@ -239,41 +249,27 @@ def reject_task(request, task_id):
     # Если его нет, то создаём
     TaskStatus.objects.create(task_id=task_id, user=user, type=TaskStatusTypes.REJECTED)
 
-    return render(request, reverse('tasks:task-detail', args=(task_id,)), status=200)
+    return render(request, reverse('tasks:task-detail', args=(task_id,)))
 
 
 @permission_required('tasks.can_put_to_work')
-def put_to_work(request, pk):
+def put_to_work(request, pk: int, status_id: int):
     task = get_object_or_404(Task, pk=pk)
 
     if request.user != task.author:
         raise PermissionDenied()
 
-    task_status = (
-        task.task_statuses.filter(type=TaskStatusTypes.ACCEPTED)
-            .order_by('-price')
-            .first()
-    )
-    if task_status:
-        task_status.type = TaskStatusTypes.IN_WORK
-        task_status.save()
-    else:
-        messages.add_message(
-            request,
-            messages.ERROR,
-            'Никто из исполнителей ещё не принял заявку',
-            extra_tags='danger',
-        )
-        return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
+    task_status = get_object_or_404(TaskStatus, pk=status_id)
 
+    task_status.type = TaskStatusTypes.IN_WORK
+    task_status.save()
     task.status = TaskStatuses.IN_PROGRESS
-    task.prepayment_received = True
     task.save()
 
     return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
 
 
-@permission_required('tasks.can_put_to_work')
+@permission_required('tasks.can_rate_task')
 def accept_from_rejected(request, pk):
     task = get_object_or_404(Task, pk=pk)
     task_status = TaskStatus.objects.filter(task_id=pk, type=TaskStatusTypes.REJECTED).first()
@@ -342,9 +338,15 @@ class FileUpdate(UserPassesTestMixin, UpdateView):
 
     def get_success_url(self, **kwargs):
         # TODO тут много запросов
-        return reverse(
-            'tasks:task-detail', kwargs={'pk': self.object.comment_file.comment.task.id}
-        )
+        try:
+            reverse_url = reverse(
+                'tasks:task-detail', kwargs={'pk': self.object.comment_file.comment.task.id}
+            )
+        except:
+            reverse_url = reverse(
+                'tasks:task-detail', kwargs={'pk': self.object.task_file.task.id }
+            )
+        return reverse_url
 
     def test_func(self):
         task_file = getattr(self.get_object(), 'task_file', None)
@@ -367,9 +369,24 @@ class DeleteTaskView(UserPassesTestMixin, DeleteView):
         return self.get_object().author == self.request.user
 
 
-def add_files(request, pk, target):
-    print(pk, target)
-    return HttpResponseRedirect(reverse('tasks:task-list'))
+def add_files(request, task_id):
+    task = get_object_or_404(Task, pk=task_id)
+    if task.author == request.user:
+        if request.method == 'POST':
+            form = AddFileTaskForm(request.POST, request.FILES)
+            if form.is_valid():
+                task_files = []
+                for file in request.FILES.getlist('files'):
+                    task_files.append(TaskFile(task=task, file=File.objects.create(file=file)))
+                TaskFile.objects.bulk_create(task_files)
+                return HttpResponseRedirect(reverse('tasks:task-detail', args=(task_id,)))
+            else:
+                return render(request, template_name='tasks/task_add_files.html', context={'form': form})
+        else:
+            form = AddFileTaskForm()
+            return render(request, template_name='tasks/task_add_files.html', context={'form': form})
+    else:
+        return PermissionDenied()
 
 
 def delete_file(request, pk):
@@ -381,3 +398,34 @@ def delete_file(request, pk):
     file.delete()
 
     return HttpResponseRedirect(reverse('tasks:task-detail', args=(task_id,)))
+
+
+def approve_task_status(request, pk):
+    user = request.user
+    task_status = get_object_or_404(TaskStatus, pk=pk)
+
+    if user != task_status.user:
+        return PermissionDenied()
+
+    task_status.approved = True
+
+    return HttpResponseRedirect(reverse('tasks:task-detail'), args=(task_status.task_id,))
+
+
+@permission_required('tasks.can_put_to_work')
+def check_actuality(request, pk: int):
+    user = request.user
+    task_status = get_object_or_404(TaskStatus, pk=pk)
+
+    if user != task_status.task.author:
+        raise PermissionDenied()
+
+    notify.send(
+        sender=request.user,
+        recipient=task_status.user,
+        verb='Ответил на комментарий',
+        target=task_status.task,
+        action_object=task_status,
+    )
+
+    return HttpResponseRedirect(reverse('tasks:task-detail'), args=(task_status.task_id,))

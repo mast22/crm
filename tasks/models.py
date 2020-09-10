@@ -38,14 +38,13 @@ class Task(m.Model):
         'Статус', choices=TASK_STATUS_CHOICES, default=TaskStatuses.NEW, max_length=11
     )
     wanted_deadline = m.DateField('Желаемый срок', null=True)
-    teacher_name = m.CharField('ФИО руководителя', null=True, max_length=100)
+    teacher_name = m.CharField('ФИО руководителя', null=True, max_length=100, blank=True)
     phone = m.CharField('Номер телефона', max_length=150)
     whats_app = m.CharField('What\'s App', max_length=150)
     work_type = m.ForeignKey(WorkType, on_delete=m.SET_NULL, null=True, verbose_name='Тип работы')
     work_direction = m.ForeignKey(WorkDirection, on_delete=m.SET_NULL, null=True, verbose_name='Направление')
     email = m.EmailField('Электронная почта')
-    address = m.CharField('Адрес', max_length=150)
-    company = m.CharField('Компания', max_length=150)
+    group = m.CharField('ВУЗ, Кафедра, Группа', blank=True, max_length=300)
     notes = m.TextField('Заметки', blank=True)
     prepayment_received = m.BooleanField('Предоплата внесена', default=False)
 
@@ -60,13 +59,19 @@ class Task(m.Model):
     def get_absolute_url(self):
         return reverse('task-detail', kwargs={'pk': self.pk})
 
-    def can_be_edited(self):
+    def can_be_edited(self) -> bool:
         """
         Решаем если можно изменять заявку.
         Заявку нельзя изменять если:
         1. Она уже завершена или в прогрессе
         """
+        return self.status not in [TaskStatuses.COMPLETED, TaskStatuses.IN_PROGRESS]
+
+    def performer_chosen(self) -> bool:
         return self.status in [TaskStatuses.COMPLETED, TaskStatuses.IN_PROGRESS]
+
+    def get_task_status(self) -> bool:
+        return self.task_statuses.filter(type__in=[TaskStatusTypes.IN_WORK, TaskStatusTypes.ACCEPTED]).first()
 
 
 class TaskStatus(m.Model):
@@ -136,6 +141,7 @@ class File(m.Model):
         if comment_file.comment.can_be_edited():
             return True
         return False
+
 
 class TaskFile(m.Model):
     task = m.ForeignKey(Task, related_name='files', on_delete=m.CASCADE)

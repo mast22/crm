@@ -18,8 +18,6 @@ class FileManagmentTestCase(BaseTaskTests):
             whats_app='+79991568802',
             author=cls.manager,
             email='email@email.com',
-            address='Кукушкина 12',
-            company='Компания',
             text='Рандомный текст',
             wanted_deadline=datetime.now(),
         )

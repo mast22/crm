@@ -3,22 +3,24 @@
 
 {% recursetree comments %}
     <div class="media">
-        <div class="media-body" id='{{ node.id }}'>
-            <span class="comment-info">
-              <a href="{% url 'comments:comment-detail' node.id %}">№ {{ node.id }}</a> -- {{ node.created_at }} --
-                {% if node.author == user %} Вы: {% endif %} {# Отметка текущего пользователя #}
-                {% if node.author == object.author %} Исполнитель {% else %} Пользователь №{{ user.id|task_sequence:node.id }} {% endif %} {# Отметка пользователя #}
-                {% if node.can_be_edited and node.author == user %}
-                    <a href="{% url 'comments:comment-edit' node.id %}"><i class="fas fa-edit"></i> Изменить текст</a>
-                    </span>
-                {% endif %}
-            <p>{{ node.text|linebreaks }}</p>
-            {% include 'files.html' with files=node.files.all editable=node.can_be_edited author=node.author %}
-            <a href="{% url 'comments:comment-reply' node.task.id node.id %}">Ответить</a>
+    <div class="media-body" id='{{ node.id }}'>
+    <span class="comment-info">
+      <a href="{% url 'comments:comment-detail' node.id %}">№ {{ node.id }}</a> -- {{ node.created_at }} --
+        {% if node.author == user %} Вы: {% endif %} {# Отметка текущего пользователя #}
+        {% if node.author == object.author %} Исполнитель {% else %} Пользователь №{{ user.id|task_sequence:node.id }} {% endif %} {# Отметка пользователя #}
+        {% if node.can_be_edited and node.author == user %}
+            <a href="{% url 'comments:comment-edit' node.id %}"><i class="fas fa-edit"></i> Изменить текст</a>
+            <a href="{% url 'comments:delete-comment' node.id %}">Удалить комментарий</a>
+        {% endif %}
+    </span>
+    <p>{{ node.text|linebreaks }}</p>
+    {% url 'comments:add-files' node.id as edit_url %}
+    {% include 'files.html' with files=node.files.all editable=node.can_be_edited author=node.author edit_url=edit_url %}
+    <a href="{% url 'comments:comment-reply' node.task.id node.id %}">Ответить</a>
 
-            {% if not node.is_leaf_node %}
-                {{ children }}
-            {% endif %}
-        </div>
+    {% if not node.is_leaf_node %}
+        {{ children }}
+    {% endif %}
+    </div>
     </div>
 {% endrecursetree %}

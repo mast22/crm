@@ -1,18 +1,14 @@
 import os
 import environ
 from django.urls import reverse_lazy, reverse
-import mimetypes
 
-mimetypes.add_type("text/css", ".css", True)
-mimetypes.add_type("text/javascript", ".js", True)
-# mimetypes.add_type("image/png", ".png", True)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 environment = os.getenv('PRODUCTION', False)
 
 env = environ.Env()
-environ.Env.read_env()
+environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 
 SECRET_KEY = 'd$+1pmsjxraw8n0@n0ksa^59_h(b6d@leujqgb%nqx3b6v-lol'
 DEBUG = env('DEBUG', bool, default=False)
@@ -28,6 +24,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
+    'django_filters',
     'mptt',
     'tasks',
     'users',
@@ -140,7 +138,7 @@ DRAMATIQ_BROKER = {
 DRAMATIQ_TASKS_DATABASE = "default"
 
 LOGIN_REDIRECT_URL = reverse_lazy('tasks:task-list')
-
+LOGOUT_REDIRECT_URL = reverse_lazy('login')
 # STRONGHOLD
 STRONGHOLD_DEFAULTS = True
 STRONGHOLD_PUBLIC_URLS = ("/accounts/password_reset/",)

@@ -13,7 +13,7 @@ environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
 SECRET_KEY = 'd$+1pmsjxraw8n0@n0ksa^59_h(b6d@leujqgb%nqx3b6v-lol'
 DEBUG = env('DEBUG', bool, default=False)
 
-ALLOWED_HOSTS = ['127.0.0.1', '45.11.26.18']
+ALLOWED_HOSTS = ['127.0.0.1', '46.17.248.58']
 
 
 INSTALLED_APPS = [

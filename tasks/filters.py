@@ -1,10 +1,13 @@
-from .models import Task
-from django_filters import FilterSet, Filter, NumberFilter
+from .models import Task, WorkType
+import django_filters
 
 
-class WorkTypeFilter(FilterSet):
-    # work_types = NumberFilter(field_name='work_type', lookup_expr='in')
+class TaskFilter(django_filters.FilterSet):
+    work_types = django_filters.ModelMultipleChoiceFilter(
+        queryset = WorkType.objects.all(),
+        field_name='work_type_id',
+    )
 
     class Meta:
         model = Task
-        fields = ['work_type_id']
+        fields = ['work_types']

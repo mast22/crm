@@ -24,5 +24,5 @@ urlpatterns = [
     path('<int:pk>/check-actuality/', v.check_actuality, name='check-actuality'),
 
     # Modifier может принимать любое значение. Его необходимо держать в самом низу
-    path('<str:modifier>/', v.TaskListView.as_view(), name='filtered-task-list'),
+    path('<str:modifier>/', v.TaskStatusListView.as_view(), name='filtered-task-list'),
 ]

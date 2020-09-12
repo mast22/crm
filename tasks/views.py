@@ -20,8 +20,6 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.core.exceptions import PermissionDenied
-from .filters import WorkTypeFilter
-from django_filters.views import FilterView
 
 
 class TaskDetail(PermissionRequiredMixin, UserPassesTestMixin, DetailView):
@@ -108,6 +106,7 @@ class AllTaskList(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, Lis
 
     def get_queryset(self):
         query = self.request.GET.get('query')
+        get_params = self.request.GET.get('work_types')
         queryset = super().get_queryset()
         if query:
             if query.startswith('#'):
@@ -118,12 +117,19 @@ class AllTaskList(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, Lis
                 queryset = queryset.annotate(
                     search=SearchVector('name', 'text')
                 ).filter(search=query)
-            return queryset
-        else:
-            return queryset
+        elif get_params:
+            try:
+                ids = [int(param) for param in get_params.split(',')]
+                queryset = queryset.filter(work_type_id__in=ids)
+                print(ids)
+            except:
+                pass
+
+        return queryset
 
 
-class TaskListView(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, ListView):
+
+class TaskStatusListView(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, ListView):
     """Представление с фильтрацией по статусу. Фильтрует только по статусу
     Игнорирует AllTaskList
     """

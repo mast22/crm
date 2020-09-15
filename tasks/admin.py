@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Task, TaskFile, File
+from .models import Task, TaskFile, File, TaskStatus
 
 # Register your models here.
 
@@ -17,3 +17,8 @@ class TaskFileAdmin(admin.ModelAdmin):
 @admin.register(File)
 class FileAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(TaskStatus)
+class TaskStatusAdmin(admin.ModelAdmin):
+    list_display = ['id', 'task', 'user', 'price', 'type', 'created']

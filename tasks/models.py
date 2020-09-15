@@ -5,6 +5,8 @@ from django.urls import reverse
 from django.dispatch import receiver
 from django.conf import settings
 from django.forms.models import model_to_dict
+from django.contrib.postgres.indexes import BrinIndex
+
 from common.const import MANAGER_GROUP_NAME
 from .const import (
     TaskStatuses,
@@ -47,6 +49,7 @@ class Task(m.Model):
     group = m.CharField('ВУЗ, Кафедра, Группа', blank=True, max_length=300)
     notes = m.TextField('Заметки', blank=True)
     prepayment_received = m.BooleanField('Предоплата внесена', default=False)
+    promocode = m.CharField('Промокод', max_length=100, blank=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -55,9 +58,17 @@ class Task(m.Model):
             ('can_put_to_work', 'Может отдать в работу'),
             ('can_see_extra', 'Может смотреть дополнительную информацию'),
         )
+        indexes = [
+            BrinIndex(fields=['created_at']),
+            m.Index(fields=['name', 'text']),
+            m.Index(fields=['work_type']),
+        ]
 
     def get_absolute_url(self):
         return reverse('task-detail', kwargs={'pk': self.pk})
+
+    def __str__(self):
+        return f'{self.name}: {self.customer_name}'
 
     def can_be_edited(self) -> bool:
         """
@@ -70,18 +81,20 @@ class Task(m.Model):
     def performer_chosen(self) -> bool:
         return self.status in [TaskStatuses.COMPLETED, TaskStatuses.IN_PROGRESS]
 
-    def get_task_status(self) -> bool:
-        return self.task_statuses.filter(type__in=[TaskStatusTypes.IN_WORK, TaskStatusTypes.ACCEPTED]).first()
+    def get_active_status(self, user) -> "TaskStatus" or None:
+        return self.task_statuses.filter(user=user).order_by('created').last()
 
 
 class TaskStatus(m.Model):
+    """ Оценка исполнителя. Неправильно подобрал слова """
     task = m.ForeignKey(Task, on_delete=m.CASCADE, related_name='task_statuses')
     user = m.ForeignKey("users.User", on_delete=m.CASCADE, related_name='task_statuses')
-    last_modified = m.DateTimeField(auto_now=True)
+    created = m.DateTimeField(auto_now_add=True)
     type = m.CharField(choices=TASK_STATUS_TYPES_CHOICES, max_length=8)
-    price = m.DecimalField(decimal_places=2, max_digits=10, null=True)
+    price = m.DecimalField(decimal_places=0, max_digits=10, null=True)
     deadline = m.DateField(null=True)
     approved = m.BooleanField(default=True)
+    last_modified = m.DateTimeField(auto_now=True)
 
     def is_rejected(self) -> bool:
         return (
@@ -91,22 +104,20 @@ class TaskStatus(m.Model):
         )
 
     def is_actual(self) -> bool:
-        # Если решение подтверждено, то она актуально
-        # Главное не забыть правильно его отменять - менять на False
-        if not self.approved:
-            return False
-        # Если она не подтверждена и прошло более 72 часов с выставления заявки, то проверяем актуальность
         if self.last_modified + timedelta(hours=72) < timezone.now():
+            # Нет изменений в течении 72 часов
             return False
-        # Если после выставления решения были комментарии от менеджера, то заявка не актуально
         if self.task.comments.filter(author__groups__name=MANAGER_GROUP_NAME, created_at__gt=self.last_modified):
+            # Появился комментарий от менеджера
             return False
-        # Иначе возвращает решение исполнителя
-        return self.approved
 
-    class Meta:
-        unique_together = ['task', 'user']
-        ordering = ['-price']
+        return True
+
+    def __str__(self):
+        return f'{self.price} {self.user} {self.task}'
+
+    # class Meta:
+    #     ordering = ['-created']
 
 
 class File(m.Model):

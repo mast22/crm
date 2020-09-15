@@ -42,6 +42,12 @@ def run_preload(add_users: bool):
                 password='admin',
                 first_name='manager',
             )
+            performer2 = User.objects.create_user(
+                username='performer2',
+                email='performer2@admin.com',
+                password='admin',
+                first_name='performer2',
+            )
 
         with transaction.atomic():
             team_leader_group = Group.objects.create(name=PERFORMER_GROUP_NAME, )
@@ -106,6 +112,7 @@ def run_preload(add_users: bool):
 
             if performer and manager:
                 performer.groups.add(team_leader_group)
+                performer2.groups.add(team_leader_group)
                 manager.groups.add(project_manager_group)
 
             performer.work_types.set([WorkType.objects.first(), WorkType.objects.last()])

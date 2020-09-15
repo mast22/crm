@@ -4,25 +4,26 @@ from .models import Task, TaskStatus
 
 class CreateTaskForm(f.ModelForm):
     files = f.FileField(
+        label='Файлы',
         widget=f.ClearableFileInput(attrs={'multiple': True}), required=False
     )
-    text = f.CharField(widget=f.Textarea)
 
     class Meta:
         model = Task
         fields = [
-            'name',
             'customer_name',
             'phone',
             'whats_app',
             'email',
             'work_type',
             'work_direction',
-            'text',
+            'name',
             'group',
-            'files',
             'teacher_name',
+            'text',
+            'files',
             'wanted_deadline',
+            'promocode',
         ]
 
 class ChangeTaskForm(f.ModelForm):
@@ -41,14 +42,14 @@ class ChangeTaskForm(f.ModelForm):
         ]
 
 
-class RateTaskForm(f.ModelForm):
+class CreateTaskStatusForm(f.ModelForm):
     class Meta:
         model = TaskStatus
         fields = ['price', 'deadline']
-        # widgets = {'task': f.HiddenInput()}
 
 
 class AddFileTaskForm(f.Form):
     files = f.FileField(
         widget=f.ClearableFileInput(attrs={'multiple': True}), required=False
     )
+

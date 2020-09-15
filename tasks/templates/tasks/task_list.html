@@ -69,7 +69,7 @@ performer-in-process
         <div>
           {% if user|has_group:"performer" %}
             {% for work_type in user.work_types.all %}
-              <input type="checkbox" id="work-type-{{ work_type.id }}" value="{{ work_type.id }}">
+              <input type="checkbox" id="work-type-{{ work_type.id }}" value="{{ work_type.id }}" name="work-types">
               <label for="work-type-{{ work_type.id }}">{{ work_type }}</label><br>
             {% endfor %}
             <a href="#">Фильтровать</a>

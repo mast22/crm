@@ -1,0 +1,19 @@
+header {
+  display: flex;
+  justify-content: space-between;
+  padding-left: 4em;
+  padding-right: 4em;
+}
+header .brand {
+  padding-right: 1em;
+}
+header .search-input {
+  outline: none;
+  width: 460px;
+}
+header .user-actions {
+  padding-left: 4em;
+}
+header .user-actions .svg-user {
+  padding-left: 1em;
+}

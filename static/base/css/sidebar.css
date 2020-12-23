@@ -1,0 +1,49 @@
+@charset "UTF-8";
+.sidebar {
+  width: 12em;
+  flex-direction: column;
+}
+.sidebar .title {
+  font-size: 22px;
+  line-height: 22px;
+  letter-spacing: 0.5px;
+  color: #466DA6;
+}
+.sidebar .status-nav {
+  margin-top: 2em;
+  margin-bottom: 2em;
+}
+.sidebar .status-nav .status-links {
+  display: flex;
+  text-decoration: none;
+}
+.sidebar .status-nav .status-links .status {
+  width: 32px;
+  height: 32px;
+}
+.sidebar .status-nav .status-links .status-img {
+  width: 16px;
+  height: 16px;
+  margin: 8px;
+}
+.sidebar .status-nav .status-links .status-is-rated {
+  background-color: #DA867B;
+  border-radius: 50%;
+}
+.sidebar .status-nav .status-links .status-is-rated .status-tick {
+  background: url(../../../crm-front/img/onАssessment1.svg) no-repeat;
+  background-size: 16px;
+}
+.sidebar .status-nav .status-links .status-in-progress .status-clock {
+  background: url(../../../crm-front/img/clock2.svg) no-repeat;
+  background-size: 16px;
+}
+.sidebar .status-nav .status-links .status-text {
+  padding-top: 8px;
+  margin-left: 10px;
+  font-size: 16px;
+  line-height: 16px;
+  letter-spacing: 0.5px;
+  color: #466DA6;
+  text-decoration: none;
+}

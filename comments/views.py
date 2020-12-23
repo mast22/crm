@@ -8,6 +8,7 @@ from notifications.signals import notify
 from tasks.const import TaskStatuses
 from common.const import PERFORMER_GROUP_NAME, MANAGER_GROUP_NAME
 from django.core.exceptions import PermissionDenied
+from common.const import NotificationType
 
 User = get_user_model()
 
@@ -73,14 +74,28 @@ def comment_create(request, task_id, parent_id=None):
                 file = File.objects.create(file=f)
                 files.append(CommentFile(comment=comment, file=file))
             CommentFile.objects.bulk_create(files)
-            if parent:
-                notify.send(
-                    sender=user,
-                    recipient=parent.author,
-                    verb='Ответил на комментарий',
-                    target=task,
-                    action_object=comment,
-                )
+            if comment.author != task.author:
+                params = {
+                    'sender': user,
+                    'action_object': comment,
+                }
+                if parent:
+                    if parent.author != comment.author:
+                        notify.send(**{
+                            **params,
+                            'target': parent,
+                            'recipient': [parent.author, task.author],
+                            'verb': "Ответил на комментарий",
+                            'description': NotificationType.reply
+                        })
+                else:
+                    notify.send(**{
+                        **params,
+                        'recipient': task.author,
+                        'verb': 'Новый комментарий',
+                        'description': NotificationType.comment,
+                    })
+
             return HttpResponseRedirect(reverse('tasks:task-detail', args=(task.id,)))
     else:
         form = CreateCommentForm()

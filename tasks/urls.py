@@ -1,10 +1,12 @@
 from django.urls import path
 from . import views as v
+from .task_list_views import TaskListView
 
 
 app_name = 'tasks'
 urlpatterns = [
-    path('', v.AllTaskList.as_view(), name='task-list'),
+    # path('', v.AllTaskList.as_view(), name='task-list'),
+    path('', TaskListView.as_view(), name='task-list'),
 
     # Фильтрация для менеджера
 
@@ -25,5 +27,5 @@ urlpatterns = [
     path('<int:pk>/change-status/', v.change_status, name='change-status'),
 
     # Modifier может принимать любое значение. Его необходимо держать в самом низу
-    path('<str:modifier>/', v.TaskStatusListView.as_view(), name='filtered-task-list'),
+    # path('<str:modifier>/', v.TaskStatusListView.as_view(), name='filtered-task-list'),
 ]

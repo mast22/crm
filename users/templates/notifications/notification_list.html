@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load auth_extras %}
 
 {% block head %}
 
@@ -8,11 +9,25 @@
   {% for object in object_list %}
     <div class="media">
       <div class="media-body">
-        <h5 class="mt-0">Ответ на комментарий
-          <a href="{% url 'comments:comment-detail' object.action_object.parent.id %}">{{ object.action_object.parent.id }}</a> на заявку
-          <a href="{% url 'tasks:task-detail' object.target.id %}">#{{ object.target.id }}</a>
-        </h5>
-        <p>Пользователей {{ object.actor }} пишет: {{ object.action_object.text }}</p>
+{#        {{ object.actor }}<br>#}
+{#        {{ object.verb }}<br>#}
+{#        {{ object.action_object }}<br>#}
+{#        {{ object.target }}<br>#}
+
+        {% if object.actor.is_manager %}
+          Менеджер
+        {% else %}
+          Исполнитель {{ object.actor|task_sequence:object.target.task.id }}
+        {% endif %}
+
+        {{ object.verb }}
+        {{ object.action_object.text }}
+
+{#        <h5 class="mt-0">Ответ на комментарий#}
+{#          <a href="{% url 'comments:comment-detail' object.action_object.parent.id %}">{{ object.action_object.parent.id }}</a> на заявку#}
+{#          <a href="{% url 'tasks:task-detail' object.target.id %}">#{{ object.target.id }}</a>#}
+{#        </h5>#}
+{#        <p>Пользователей {{ object.actor }} пишет: {{ object.action_object.text }}</p>#}
       </div>
     </div>
   {% endfor %}

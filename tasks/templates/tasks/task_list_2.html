@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load auth_extras %}
+
+{% block head %}
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'tasks/css/styles.css' %}">
+{% endblock head %}
+
+
+{% block content %}
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <ul class="nav flex-column">
+          <form>
+            {% for value, text in filters.left_bar_filters.items %}
+              <button class="filter-button fb-left" type="submit" name="left-bar-filter" value="{{ value }}" action="{% url 'tasks:task-list' %}">{{ text }}</button>
+            {% endfor %}
+          </form>
+        </ul>
+      </div>
+      <div class="col-8">
+          <nav class="nav">
+            <form>
+              {% for value, text in filters.top_bar_filters.items %}
+                <button class="filter-button fb-top" type="submit" name="top-bar-filter" value="{{ value }}" action="{% url 'tasks:task-list' %}">{{ text }}</button>
+              {% endfor %}
+            </form>
+          </nav>
+
+        {% for task in object_list %}
+          <div class="task-list">
+            <div class="media">
+              <div class="media-body">
+                <h5 class="mt-0"><a href="{% url 'tasks:task-detail' task.id %}">{{ task.name }}</a></h5>
+                <span>Статус: {{ task.get_status_display }}</span>
+                <p>{{ task.created_at }}</p>
+                <div class="action-buttons">
+                  <a href="{% url 'tasks:task-detail' task.id %}" class="btn btn-success">Подробнее</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+
+      </div>
+      <div class="col"></div>
+    </div>
+  </div>
+
+  {% comment %}
+  <script>
+    'use strict';
+
+    // Сначало получим get параметры которые уже заданы для последующей модификации
+    let queryDict = {}
+
+    function evaluateParams() {
+        location.search.substr(1).split("&").forEach(
+            function (item) {
+                let [key, value] = item.split("=");
+                if (value.includes(',')) {
+                    // Определяем массив в значении
+                    value = value.split(',').filter(str => !!str);
+                }
+                queryDict[key] = value;
+            }
+        )
+    }
+  </script>
+  {% endcomment %}
+
+{% endblock content %}

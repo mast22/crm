@@ -17,26 +17,23 @@ from .const import TaskStatuses, TaskStatusTypes
 from django.contrib.auth.mixins import PermissionRequiredMixin, UserPassesTestMixin
 from django.http import Http404
 from django.urls import reverse_lazy
-from django.contrib import messages
-from django.contrib.auth.decorators import permission_required
 from django.core.exceptions import PermissionDenied
 
 
-class TaskDetail(PermissionRequiredMixin, UserPassesTestMixin, DetailView):
+class TaskDetail(UserPassesTestMixin, DetailView):
     model = Task
-    permission_required = 'tasks.view_task'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['comments'] = self.object.comments.all()
         context['update_form'] = ChangeTaskForm(instance=self.get_object())
         user = self.request.user
-        if user.has_perm('tasks.can_rate_task'):
+        if user.is_performer():
             # Статусы этого пользователя
             context['task_statuses'] = self.object.task_statuses.filter(user=user).order_by('created')
             # Последний активный статус
             context['active_status'] = self.object.get_active_status(user)
-        elif user.has_perm('tasks.can_put_to_work'):
+        elif user.is_manager():
             # Статусы всех оценивших пользователей
             context['task_statuses'] = self.object.\
                 task_statuses.\
@@ -57,8 +54,11 @@ class TaskDetail(PermissionRequiredMixin, UserPassesTestMixin, DetailView):
         return True
 
 
-@permission_required('tasks.can_see_extra')
 def change_task_view(request, pk):
+    user = request.user
+    if not user.is_manager():
+        raise PermissionDenied
+
     if request.method == 'POST':
         form = ChangeTaskForm(request.POST, instance=get_object_or_404(Task, pk=pk))
         form.save()
@@ -110,7 +110,6 @@ class AllTaskList(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, Lis
     Игнорирует TaskListView
     """
     model = Task
-    permission_required = 'tasks.view_task'
 
     def get_queryset(self):
         query = self.request.GET.get('query')
@@ -136,13 +135,11 @@ class AllTaskList(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, Lis
         return queryset
 
 
-
 class TaskStatusListView(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMixin, ListView):
     """Представление с фильтрацией по статусу. Фильтрует только по статусу
     Игнорирует AllTaskList
     """
     model = Task
-    permission_required = 'tasks.view_task'
 
     def get_queryset(self):
         modifier = self.kwargs['modifier']
@@ -194,9 +191,9 @@ class TaskStatusListView(PermissionRequiredMixin, TaskTypeFilter, GroupFilterMix
         return qs
 
 
-class CreateTaskView(PermissionRequiredMixin, CreateView):
+class CreateTaskView(UserPassesTestMixin, CreateView):
     form_class = CreateTaskForm
-    permission_required = 'tasks.add_task'
+    # permission_required = 'tasks.add_task'
     model = Task
 
     def form_valid(self, form):
@@ -214,6 +211,9 @@ class CreateTaskView(PermissionRequiredMixin, CreateView):
 
         return HttpResponseRedirect(reverse('tasks:task-list'))
 
+    def test_func(self):
+        return self.request.user.is_manager()
+
 
 """
 TaskStatus
@@ -224,12 +224,12 @@ TaskStatus
 """
 
 
-@permission_required('tasks.can_put_to_work')
 def put_to_work(request, pk: int, status_id: int):
+    user = request.user
     task = get_object_or_404(Task, pk=pk)
 
-    if request.user != task.author:
-        raise PermissionDenied()
+    if not (user.is_manager() or user == task.author):
+        raise PermissionDenied
 
     task_status = get_object_or_404(TaskStatus, pk=status_id)
 
@@ -310,12 +310,11 @@ def delete_file(request, pk):
     return HttpResponseRedirect(reverse('tasks:task-detail', args=(task_id,)))
 
 
-@permission_required('tasks.can_put_to_work')
 def check_actuality(request, pk: int):
     user = request.user
     task_status = get_object_or_404(TaskStatus, pk=pk)
 
-    if user != task_status.task.author:
+    if user != task_status.task.author or not user.is_manager():
         raise PermissionDenied()
 
     task_status.approved = False
@@ -332,10 +331,12 @@ def check_actuality(request, pk: int):
     return HttpResponseRedirect(reverse('tasks:task-detail', args=(task_status.task_id,)))
 
 
-@permission_required('tasks.can_rate_task')
 def accept_task(request, pk):
-    task = get_object_or_404(Task, pk=pk)
     user = request.user
+    if user.is_manager():
+        raise PermissionDenied
+
+    task = get_object_or_404(Task, pk=pk)
 
     if request.method == 'POST':
         form = CreateTaskStatusForm(request.POST)
@@ -353,11 +354,11 @@ def accept_task(request, pk):
         form = CreateTaskStatusForm()
         return render(request, 'tasks/taskstatus_form.html', context={'form': form})
 
-
-@permission_required('tasks.can_rate_task')
 def reject_task(request, pk):
-    task = get_object_or_404(Task, pk=pk)
     user = request.user
+    if user.is_manager():
+        raise PermissionDenied
+    task = get_object_or_404(Task, pk=pk)
 
     TaskStatus.objects.create(
         task=task,
@@ -367,10 +368,11 @@ def reject_task(request, pk):
     return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
 
 
-@permission_required('tasks.can_rate_task')
 def approve_status(request, pk):
-    task = get_object_or_404(Task, pk=pk)
     user = request.user
+    if user.is_manager():
+        raise PermissionDenied
+    task = get_object_or_404(Task, pk=pk)
     task_status = task.get_active_status(user)
 
     task_status.approved = True
@@ -378,9 +380,12 @@ def approve_status(request, pk):
 
     return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
 
-@permission_required('tasks.can_rate_task')
 def change_status(request, pk):
     """ На самом деле не изменяет, а создаёт новый. Просто старый становится не активным """
+    user = request.user
+    if user.is_manager():
+        raise PermissionDenied
+
     task = get_object_or_404(Task, pk=pk)
     user = request.user
 

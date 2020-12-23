@@ -1,0 +1,101 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+}
+
+.btn {
+  display: block;
+  padding: 15px 35px;
+  height: 20px;
+  text-decoration: none;
+  border: none;
+  border-radius: 4px;
+  font-weight: 550;
+  font-size: 16px;
+  line-height: 16px;
+  color: #fff !important;
+}
+.btn span {
+  display: inline-block;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.btn-green {
+  background: #60BC87;
+}
+.btn-green:hover {
+  background: #60bc86d7;
+}
+.btn-green:active {
+  background: #60bc86b4;
+}
+
+.btn-red {
+  margin-left: 30px;
+  background: #DA7B7B;
+}
+.btn-red:hover {
+  background: #da7b7bd5;
+}
+.btn-red:active {
+  background: #da7b7bb4;
+}
+
+.btn-gray {
+  background: #AEB8BC;
+}
+
+header {
+  height: 100px;
+  background-color: #5B7DAE;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  align-items: center;
+  display: flex;
+}
+header div, header span {
+  color: #FAFAFA;
+}
+header .brand {
+  font-weight: 550;
+  font-size: 25px;
+}
+header .search-bar {
+  background: #FAFAFA;
+  border-radius: 4px;
+  height: 40px;
+  padding: 0 10px;
+}
+header .search-input {
+  border: none;
+  line-height: 40px;
+  width: 550px;
+  background: #FAFAFA;
+}
+@media screen and (max-width: 1200px) {
+  header .search-input {
+    width: 400px;
+  }
+}
+header .search-input::placeholder {
+  font-size: 16px;
+}
+header img {
+  vertical-align: middle;
+}
+header .user-actions * {
+  margin-right: 40px;
+}
+@media screen and (max-width: 1200px) {
+  header .user-actions * {
+    margin-right: 10px;
+  }
+}
+header .user-actions .username, header .user-actions .svg-user {
+  margin-right: 0;
+}

@@ -9,13 +9,16 @@
     {% endbuttons %}
   </form>
   <script>
-  $('#id_wanted_deadline').datepicker({
-      dateFormat : "dd.mm.yy",
-      minDate: new Date($('#hiddendelivdate').val()),
-      monthNames : ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
-      dayNamesMin : ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'],
-      firstDay: 1,
+  $(function () {
+    const date_input = $("#id_wanted_deadline");
+    date_input.attr('autocomplete', 'off');
+    date_input.datepicker({
+      format:'dd/mm/yyyy',
+      weekStart: 1,
+      startDate: new Date(),
+      language: 'ru-RU'
     });
+  });
   </script>
 {% endblock content %}
 

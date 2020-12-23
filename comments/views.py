@@ -50,6 +50,7 @@ def comment_create(request, task_id, parent_id=None):
             )
 
             # Логика изменения статуса
+            # TODO fsm
 
             if (
                 task.status == TaskStatuses.NEW
@@ -84,10 +85,18 @@ def comment_create(request, task_id, parent_id=None):
                         notify.send(**{
                             **params,
                             'target': parent,
-                            'recipient': [parent.author, task.author],
+                            'recipient': parent.author,
                             'verb': "Ответил на комментарий",
                             'description': NotificationType.reply
                         })
+                        if parent.author != task.author:
+                            notify.send(**{
+                                **params,
+                                'target': parent,
+                                'recipient': task.author,
+                                'verb': "Оставил комментарий",
+                                'description': NotificationType.reply
+                            })
                 else:
                     notify.send(**{
                         **params,

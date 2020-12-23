@@ -1,34 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-    <title>ОАО Рога и копыта</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>ОАО Рога и копыта</title>
 
-    {% load bootstrap4 %} {% bootstrap_css %} {% bootstrap_javascript jquery='full' %}
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <link href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"/>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/js/all.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"/>
-    {% load static %}
-    <link rel="stylesheet" type="text/css" href="{% static 'base/styles.css' %}"/>
-    <link rel="stylesheet" type="text/css" href="{% static 'tasks/css/styles.css' %}"/>
-    {% block head %} {% endblock head %}
+  {% load bootstrap4 %} {% bootstrap_css %} {% bootstrap_javascript jquery='full' %}
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/datepicker/0.6.5/datepicker.min.css"
+        integrity="sha256-b88RdwbRJEzRx95nCuuva+hO5ExvXXnpX+78h8DjyOE=" crossorigin="anonymous"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/datepicker/0.6.5/datepicker.min.js"
+          integrity="sha256-/7FLTdzP6CfC1VBAj/rsp3Rinuuu9leMRGd354hvk0k=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/js/all.min.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css"/>
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'base/styles.css' %}"/>
+  <link rel="stylesheet" type="text/css" href="{% static 'tasks/css/styles.css' %}"/>
+  {% block head %} {% endblock head %}
 </head>
 <body>
 {% include 'navbar.html' %}
 
 <div class="container">
-    {% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %}" role="alert">
-            {{ message }}
-        </div>
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %}" role="alert">
+        {{ message }}
+      </div>
 
-        {% endfor %}
-    {% endif %}
+    {% endfor %}
+  {% endif %}
 
-    {% block content %} {% endblock content %}
+  {% block content %} {% endblock content %}
 </div>
 
 <script>
@@ -53,6 +55,27 @@
         }
         return cookieValue;
     }
+
+    (function (global, factory) {
+        typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('jquery')) :
+            typeof define === 'function' && define.amd ? define(['jquery'], factory) :
+                (factory(global.jQuery));
+    }(this, (function ($) {
+        'use strict';
+
+        $.fn.datepicker.languages['ru-RU'] = {
+            format: 'dd.mm.YYYY',
+            days: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+            daysShort: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+            daysMin: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+            months: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+            monthsShort: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+            weekStart: 1,
+            startView: 0,
+            yearFirst: false,
+            yearSuffix: ''
+        };
+    })));
 </script>
 </body>
 </html>

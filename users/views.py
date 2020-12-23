@@ -3,6 +3,7 @@ from django.views.generic.list import ListView
 from django.views.generic.edit import UpdateView
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.http import HttpResponseRedirect
 from users.models import User
 from django.shortcuts import reverse
 from . import forms as f
@@ -13,7 +14,13 @@ class NotificationView(ListView):
 
     def get_queryset(self):
         user = self.request.user
-        return Notification.objects.filter(recipient=user)
+        return user.notifications.unread()
+
+
+def mark_notifications_as_read(request):
+    user = request.user
+    user.notifications.mark_all_as_read()
+    return HttpResponseRedirect(reverse('users:notification-list'))
 
 
 class UserSettingsView(UserPassesTestMixin, UpdateView, SuccessMessageMixin):

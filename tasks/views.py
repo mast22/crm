@@ -348,8 +348,8 @@ def accept_task(request, pk):
                 price=form.cleaned_data['price'],
                 deadline=form.cleaned_data['deadline'],
             )
-
-        return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
+            return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
+        return render(request, 'tasks/taskstatus_form.html', context={'form': form})
     else:
         form = CreateTaskStatusForm()
         return render(request, 'tasks/taskstatus_form.html', context={'form': form})

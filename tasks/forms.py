@@ -3,6 +3,9 @@ from .models import Task, TaskStatus
 
 
 class CreateTaskForm(f.ModelForm):
+    wanted_deadline = f.DateTimeField(
+        input_formats=['%d/%m/%Y'],
+    )
     files = f.FileField(
         label='Файлы',
         widget=f.ClearableFileInput(attrs={'multiple': True}), required=False
@@ -18,8 +21,6 @@ class CreateTaskForm(f.ModelForm):
             'work_type',
             'work_direction',
             'name',
-            'group',
-            'teacher_name',
             'text',
             'files',
             'wanted_deadline',
@@ -43,6 +44,9 @@ class ChangeTaskForm(f.ModelForm):
 
 
 class CreateTaskStatusForm(f.ModelForm):
+    deadline = f.DateTimeField(
+        input_formats=['%d/%m/%Y'],
+    )
     class Meta:
         model = TaskStatus
         fields = ['price', 'deadline']

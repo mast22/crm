@@ -10,10 +10,13 @@
         {% if node.author == object.author %} Исполнитель {% else %} Пользователь №{{ user.id|task_sequence:node.id }} {% endif %} {# Отметка пользователя #}
         {% if node.can_be_edited and node.author == user %}
             <a href="{% url 'comments:comment-edit' node.id %}"><i class="fas fa-edit"></i> Изменить текст</a>
-            <a href="{% url 'comments:delete-comment' node.id %}">Удалить комментарий</a>
+            <a href="{% url 'comments:delete-comment' node.id %}">
+              <i  class="fas fa-times"></i> Удалить комментарий</a>
         {% endif %}
     </span>
-    <p>{{ node.text|linebreaks }}</p>
+      <hr>
+      <p>{{ node.text|linebreaks }}</p>
+      <hr>
     {% url 'comments:add-files' node.id as edit_url %}
     {% include 'files.html' with files=node.files.all editable=node.can_be_edited author=node.author edit_url=edit_url %}
     <a href="{% url 'comments:comment-reply' node.task.id node.id %}">Ответить</a>

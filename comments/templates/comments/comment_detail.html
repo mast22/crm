@@ -2,7 +2,7 @@
 {% load mptt_tags %}
 
 {% block content %}
-
+  <a href="{% url 'tasks:task-detail' object.0.task_id %}">Вернуться к заявке</a>
   {% include 'comments/comment.html' %}
 
 {% endblock content %}

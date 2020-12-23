@@ -3,8 +3,9 @@
     {% for file in files %}
         <div class="file">
             {% if editable and author == user %}
-                <a onclick="delete_file_ajax('{% url 'tasks:delete-file' file.file.id %}', $(this));"><i
-                        class="fas fa-times"></i></a>
+                <a class="delete-button" onclick="delete_file_ajax('{% url 'tasks:delete-file' file.file.id %}', $(this));">
+                  <i class="fas fa-times"></i>
+                </a>
             {% endif %}
             <a href="{{ file.file.file.url }}">{{ file.file.file.name }}</a>
             <span>
@@ -21,4 +22,3 @@
 {% if editable and author == user %}
     <a href="{{ edit_url }}">Добавить файлы</a>
 {% endif %}
-<br>

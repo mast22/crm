@@ -13,7 +13,6 @@
         {% endfor %}
       </ul>
       {% if not active_status.type == 'rejected' %}
-         Заявка не отменена
         {% if not active_status.approved %}
            Заявка требует подтверждения
           <a href="{% url 'tasks:approve-status' task.id %}">Подтвердить</a>

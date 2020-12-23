@@ -40,13 +40,11 @@ class Task(m.Model):
         'Статус', choices=TASK_STATUS_CHOICES, default=TaskStatuses.NEW, max_length=11
     )
     wanted_deadline = m.DateField('Желаемый срок', null=True)
-    teacher_name = m.CharField('ФИО руководителя', null=True, max_length=100, blank=True)
     phone = m.CharField('Номер телефона', max_length=150)
     whats_app = m.CharField('What\'s App', max_length=150)
     work_type = m.ForeignKey(WorkType, on_delete=m.SET_NULL, null=True, verbose_name='Тип работы')
     work_direction = m.ForeignKey(WorkDirection, on_delete=m.SET_NULL, null=True, verbose_name='Направление')
     email = m.EmailField('Электронная почта')
-    group = m.CharField('ВУЗ, Кафедра, Группа', blank=True, max_length=300)
     notes = m.TextField('Заметки', blank=True)
     prepayment_received = m.BooleanField('Предоплата внесена', default=False)
     promocode = m.CharField('Промокод', max_length=100, blank=True)

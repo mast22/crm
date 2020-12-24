@@ -63,7 +63,7 @@ class TaskListView(ListView, PermissionRequiredMixin):
         top_bar_param = self.request.GET.get('top-bar-filter', None)
         work_types_param = self.request.GET.get('work-types-filter', None)
         page_param = self.request.GET.get('page-param', None)
-        search_param = self.request.GET.get('search-param', None)
+        search_param = self.request.GET.get('query', None)
 
         """
         Проведём начальную фильтрацию и не разделим доступ по группам

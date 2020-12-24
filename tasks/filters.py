@@ -47,7 +47,7 @@ def search_filter(queryset: QuerySet, data: str) -> QuerySet:
         except ValueError as e:
             raise HttpResponseBadRequest
         queryset = queryset.annotate(search=SearchVector('id')).filter(
-            search=task_id
+            search=str(task_id)
         )
     else:
         queryset = queryset.annotate(

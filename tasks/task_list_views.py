@@ -47,7 +47,7 @@ class TaskListView(ListView, PermissionRequiredMixin):
             }
             # Исполнитель: На оценке, отклоненные, оцененные
             filters['top_bar_filters'] = {
-                FilterArgs.assessment: 'На оценке',
+                FilterArgs.new: 'Новые',
                 FilterArgs.rejected: 'Отклоненные',
                 FilterArgs.rated: 'Оцененные'
             }
@@ -87,27 +87,28 @@ class TaskListView(ListView, PermissionRequiredMixin):
             # Исполнитель: На оценке, в работе
             if user.is_manager():
                 filters = {
-                    'incoming': lambda qsf: qsf.filter(
+                    FilterArgs.incoming: lambda qsf: qsf.filter(
                         Q(status=TaskStatuses.NEW) |
                         Q(author_id=user.id, status=TaskStatuses.QUESTIONED) |
                         Q(author_id=user.id, status=TaskStatuses.RATED) |
                         Q(author_id=user.id, status=TaskStatuses.IN_PROGRESS)
                     ),
-                    'in-process': lambda qsf: qsf.filter(author_id=user.id, status=TaskStatuses.IN_PROGRESS)
+                    FilterArgs.in_process: lambda qsf: qsf.filter(author_id=user.id, status=TaskStatuses.IN_PROGRESS)
                 }
 
             if user.is_performer():
                 filters = {
-                    'in-process': lambda qsf: qsf.filter(task_statuses__user=user,
-                                                         task_statuses__type=TaskStatusTypes.IN_WORK),
-                    'incoming': lambda qsf: qsf.filter(
-                        Q(status__in=[TaskStatuses.NEW, TaskStatuses.RATED, TaskStatuses.QUESTIONED]) |
+                    FilterArgs.in_process: lambda qsf: qsf.filter(
+                        task_statuses__user=user, task_statuses__type=TaskStatusTypes.IN_WORK
+                    ),
+                    FilterArgs.assessment: lambda qsf: qsf.filter(
+                        Q(status__in=[TaskStatuses.RATED, TaskStatuses.QUESTIONED]) |
                         Q(task_statuses__user=user, task_statuses__type=TaskStatusTypes.ACCEPTED) |
                         Q(task_statuses__user=user, task_statuses__type=TaskStatusTypes.REJECTED) |
                         Q(task_statuses__user=user, task_statuses__type=TaskStatusTypes.IN_WORK)
                     ),
                 }
-            filter = filters.get('left_bar_param', None)
+            filter = filters.get(left_bar_param, None)
             if filter:
                 queryset = filter(queryset)
 
@@ -117,22 +118,25 @@ class TaskListView(ListView, PermissionRequiredMixin):
             # Менеджер: Новые, есть вопросы, оцененные
             if user.is_manager():
                 filters = {
-                    'manager-new': lambda qsf: qsf.filter(status=TaskStatuses.NEW),
-                    'manager-questioned': lambda qsf: qsf.filter(author_id=user.id, status=TaskStatuses.QUESTIONED),
-                    'manager-rated': lambda qsf: qsf.filter(author_id=user.id, status=TaskStatuses.RATED),
+                    FilterArgs.new: lambda qsf: qsf.filter(status=TaskStatuses.NEW),
+                    FilterArgs.questioned: lambda qsf: qsf.filter(author_id=user.id, status=TaskStatuses.QUESTIONED),
+                    FilterArgs.rated: lambda qsf: qsf.filter(author_id=user.id, status=TaskStatuses.RATED),
                 }
 
             if user.is_performer():
                 filters = {
-                    'performer-new': lambda qsf: qsf.filter(
-                        status__in=[TaskStatuses.NEW, TaskStatuses.RATED, TaskStatuses.QUESTIONED]),
-                    'performer-rated': lambda qsf: qsf.filter(task_statuses__user=user,
-                                                              task_statuses__type=TaskStatusTypes.ACCEPTED),
-                    'performer-rejected': lambda qsf: qsf.filter(task_statuses__user=user,
-                                                                 task_statuses__type=TaskStatusTypes.REJECTED),
+                    FilterArgs.new: lambda qsf: qsf.filter(
+                        status=TaskStatuses.NEW
+                    ),
+                    FilterArgs.rated: lambda qsf: qsf.filter(
+                        task_statuses__user=user, task_statuses__type=TaskStatusTypes.ACCEPTED
+                    ),
+                    FilterArgs.rejected: lambda qsf: qsf.filter(
+                        task_statuses__user=user, task_statuses__type=TaskStatusTypes.REJECTED
+                    ),
                 }
 
-            filter = filters.get('top_bar_param', None)
+            filter = filters.get(top_bar_param, None)
             if filter:
                 queryset = filter(queryset)
 

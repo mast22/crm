@@ -1,5 +1,6 @@
 from django.shortcuts import reverse, get_object_or_404, render
 from common.const import PERFORMER_GROUP_NAME, MANAGER_GROUP_NAME
+from django.contrib import messages
 from django.db import models as m
 from notifications.signals import notify
 from django.views.generic import (
@@ -231,6 +232,10 @@ def put_to_work(request, pk: int, status_id: int):
     if not (user.is_manager() or user == task.author):
         raise PermissionDenied
 
+    if task.task_statuses.filter(type=TaskStatusTypes.IN_WORK).exists():
+        messages.add_message(request, messages.INFO, 'Невозможно принят два предложения в работу одновременно.')
+        return HttpResponseRedirect(reverse('tasks:task-detail', args=(pk,)))
+
     task_status = get_object_or_404(TaskStatus, pk=status_id)
 
     task_status.type = TaskStatusTypes.IN_WORK
@@ -344,7 +349,6 @@ def accept_task(request, pk):
             TaskStatus.objects.create(
                 task=task,
                 user=user,
-                type=TaskStatusTypes.ACCEPTED,
                 price=form.cleaned_data['price'],
                 deadline=form.cleaned_data['deadline'],
             )

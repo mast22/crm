@@ -48,12 +48,14 @@ WORK_TYPE_CHOICES = (
 
 
 class TaskStatusTypes:
+    NEW = 'new'
     ACCEPTED = 'accepted'
     REJECTED = 'rejected'
     IN_WORK = 'in-work'
 
 
 TASK_STATUS_TYPES_CHOICES = (
+    (TaskStatusTypes.NEW, 'Новая'),
     (TaskStatusTypes.ACCEPTED, 'Принято'),
     (TaskStatusTypes.REJECTED, 'Отклонено'),
     (TaskStatusTypes.IN_WORK, 'Принят к работе'),

@@ -1,2 +1,10 @@
 {% extends 'base.html' %}
 
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+    <p>Уверены что вы хотите удалить эту заявку?</p>
+    <input type="submit" class="btn btn-danger" value="Подтвердить">
+    <a href="{% url 'tasks:task-detail' object.id %}">Вернуться назад</a>
+  </form>
+{% endblock %}

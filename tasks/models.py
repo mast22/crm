@@ -4,7 +4,6 @@ from datetime import timedelta
 from django.urls import reverse
 from django.dispatch import receiver
 from django.conf import settings
-from django.forms.models import model_to_dict
 from django.contrib.postgres.indexes import BrinIndex
 
 from common.const import MANAGER_GROUP_NAME
@@ -88,7 +87,7 @@ class TaskStatus(m.Model):
     task = m.ForeignKey(Task, on_delete=m.CASCADE, related_name='task_statuses')
     user = m.ForeignKey("users.User", on_delete=m.CASCADE, related_name='task_statuses')
     created = m.DateTimeField(auto_now_add=True)
-    type = m.CharField(choices=TASK_STATUS_TYPES_CHOICES, max_length=8)
+    type = m.CharField(choices=TASK_STATUS_TYPES_CHOICES, max_length=8, default=TaskStatusTypes.NEW)
     price = m.DecimalField(decimal_places=0, max_digits=10, null=True)
     deadline = m.DateField(null=True)
     approved = m.BooleanField(default=True)

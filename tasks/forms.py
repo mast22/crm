@@ -45,7 +45,7 @@ class ChangeTaskForm(f.ModelForm):
 
 
 class CreateTaskStatusForm(f.ModelForm):
-    deadline = f.DateTimeField(
+    deadline = f.DateField(
         label='Дедлайн',
         input_formats=['%d/%m/%Y'],
     )

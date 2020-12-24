@@ -33,8 +33,8 @@
             <div class="media">
               <div class="media-body">
                 <h5 class="mt-0"><a href="{% url 'tasks:task-detail' task.id %}">{{ task.name }}</a></h5>
-                <span>Статус: {{ task.get_status_display }}</span>
-                <p>{{ task.created_at }}</p>
+                <p><small>{{ task.created_at }}</small></p>
+                <p>{{ task.text|truncatechars:30 }}</p>
                 <div class="action-buttons">
                   <a href="{% url 'tasks:task-detail' task.id %}" class="btn btn-success">Подробнее</a>
                 </div>

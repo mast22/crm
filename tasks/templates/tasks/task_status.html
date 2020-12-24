@@ -5,10 +5,7 @@
         {% for status in task_statuses %}
           <li>
             {{ status.created }}
-            {% if status.type == 'accepted' %}
-              Срок выполнения: {{ status.deadline }} Цена: {{ status.price }}
-            {% endif %}
-             : {{ status.get_type_display }}
+              Срок выполнения: {{ status.deadline }} Цена: {{ status.price }} Статус: {{ status.get_type_display }}
           </li>
         {% endfor %}
       </ul>

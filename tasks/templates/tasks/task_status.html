@@ -56,41 +56,6 @@
         {% endfor %}
       </ul>
     {% endif %}
-    <a href="">Удалить заявку</a>
+    <a href="{% url 'tasks:delete-task' task.id %}">Удалить заявку</a>
   {% endif %}
 </div>
-{##}
-{#{% if not task.performer_chosen %}#}
-{#  <h3 class="mt-5">Оценки исполнителей</h3>#}
-{#  {% if perms.tasks.can_put_to_work and user == object.author %}#}
-{#    {% for status in object.task_statuses.all %}#}
-{#      {% if status.price is None and status.deadline is None %}#}
-{#        <p>Отклонена {{ status.last_modified }}</p>#}
-{#      {% else %}#}
-{#        <p>#}
-{#          {{ status.last_modified }} Цена: {{ status.price }} Срок выполнения: {{ status.deadline }}#}
-{#          {% if status.is_actual %}#}
-{#            <a href="{% url 'tasks:put-to-work' object.id status.id %}">Отдать в работу</a>#}
-{#          {% else %}#}
-{#            <a href="{% url 'tasks:check-actuality' task_status.id %}">Проверить актуальность</a>#}
-{#          {% endif %}#}
-{#        </p>#}
-{#      {% endif %}#}
-{#    {% endfor %}#}
-{#  {% else %}#}
-{#    {% if task_statuses %}#}
-{#      {% for task_status in task_statuses %}#}
-{#        <p>{{ task_status.last_modified }} Цена: {{ task_status.price }} Срок выполнения: {{ task_status.deadline }}#}
-{#          {% if task_status.is_actual %}#}
-{#            Заявка актуальна#}
-{#          {% else %}#}
-{#            <a href="{% url 'tasks:approve-task-status' task_status.id %}">Подтвердить актуальность</a>#}
-{#          {% endif %}#}
-{#        </p>#}
-{#      {% endfor %}#}
-{#    {% endif %}#}
-{#  {% endif %}#}
-{#{% else %}#}
-{#  <h3>Исполнитель выбран. {{ task.get_task_status.user }}</h3>#}
-{#  <p>Цена: {{ task.get_task_status.price }} Срок выполнения: {{ task.get_task_status.deadline }}</p>#}
-{#{% endif %}#}

@@ -46,8 +46,11 @@ class ChangeTaskForm(f.ModelForm):
 
 class CreateTaskStatusForm(f.ModelForm):
     deadline = f.DateTimeField(
+        label='Дедлайн',
         input_formats=['%d/%m/%Y'],
     )
+    price = f.CharField(label='Стоимость работы')
+
     class Meta:
         model = TaskStatus
         fields = ['price', 'deadline']

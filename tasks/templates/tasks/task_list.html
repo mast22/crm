@@ -1,26 +1,12 @@
 {% extends 'base.html' %}
 {% load auth_extras %}
 
+
 {% block head %}
   {% load static %}
   <link rel="stylesheet" type="text/css" href="{% static 'tasks/css/styles.css' %}">
 {% endblock head %}
 
-{% comment %}
-
-manager-incoming
-manager-new
-manager-questioned
-manager-rated
-manager-in-process
-
-performer-incoming
-performer-new
-performer-rated
-performer-rejected
-performer-in-process
-
-{% endcomment %}
 
 {% block content %}
   <div class="container">
@@ -94,10 +80,10 @@ performer-in-process
                   -- {{ task.author }}</p>{{ task.text|truncatechars:150 }}
 
                 <div class="action-buttons">
-                  {% if user|has_group:"manager" %}
+                  {% if user.is_manager %}
                     <a href="{% url 'tasks:delete-task' task.id %}">Удалить заявку</a>
                   {% endif %}
-                  {% if user|has_group:"performer" %}
+                  {% if user.is_performer %}
                     <a href="{% url 'tasks:task-detail' task.id %}" class="btn btn-success">Подробнее</a>
                     <a href="{% url 'tasks:reject-task' task.id %}" class="btn btn-danger">Отклонить</a>
                   {% endif %}

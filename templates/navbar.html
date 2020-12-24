@@ -32,9 +32,7 @@
         <li class="nav-item">
           <a class="nav-link" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Выйти</a>
         </li>
-
       {% endif %}
-
     </ul>
 
     {% if user.is_authenticated %}
@@ -46,34 +44,3 @@
     {% endif %}
   </div>
 </nav>
-{#{% load static %}#}
-{##}
-{#<header>#}
-{#  <div class="left-block">#}
-{#    <div class="brand">#}
-{#      <a href="{% url 'tasks:task-list' %}">Dynamics 365</a>#}
-{#    </div>#}
-{##}
-{#      <div class="search-bar">#}
-{#        <img src="{% static 'images/search.svg' %}"/>#}
-{#        <form action="{% url 'tasks:task-list' %}">#}
-{#          <input type="text" class="search-input" placeholder="Для поиска по номеру заявки начинайте с символа #">#}
-{#        </form>#}
-{#      </div>#}
-{#      </div>#}
-{##}
-{#    <div class="user-actions">#}
-{#      <a href="{% url 'users:notification-list' %}" class="notification">#}
-{#        <img src="{% static 'images/bell.svg' %}" id="svg-notification">#}
-{#      </a>#}
-{##}
-{#      <a href="{% url 'logout' %}" class="logout">#}
-{#        <img src="{% static 'images/exit.svg' %}" id="svg-logout">#}
-{#      </a>#}
-{##}
-{#      <a href="{% url 'users:account' user.id %}" class="user">#}
-{#        <span class="username">{{ user.get_full_name }}</span>#}
-{#      <img src="{% static 'images/user.svg' %}" class="svg-user">#}
-{#    </a>#}
-{#  </div>#}
-{#</header>#}

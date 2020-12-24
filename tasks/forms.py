@@ -27,6 +27,7 @@ class CreateTaskForm(f.ModelForm):
             'promocode',
         ]
 
+
 class ChangeTaskForm(f.ModelForm):
     class Meta:
         model = Task

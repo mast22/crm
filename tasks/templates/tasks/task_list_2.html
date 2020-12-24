@@ -47,27 +47,4 @@
       <div class="col"></div>
     </div>
   </div>
-
-  {% comment %}
-  <script>
-    'use strict';
-
-    // Сначало получим get параметры которые уже заданы для последующей модификации
-    let queryDict = {}
-
-    function evaluateParams() {
-        location.search.substr(1).split("&").forEach(
-            function (item) {
-                let [key, value] = item.split("=");
-                if (value.includes(',')) {
-                    // Определяем массив в значении
-                    value = value.split(',').filter(str => !!str);
-                }
-                queryDict[key] = value;
-            }
-        )
-    }
-  </script>
-  {% endcomment %}
-
 {% endblock content %}
